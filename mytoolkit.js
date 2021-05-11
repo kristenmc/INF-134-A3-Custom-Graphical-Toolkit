@@ -171,19 +171,91 @@ class RadioButtons  //FIRE CUSTOM EVEN FROM SINGLE RADIO BUTTON TO TELL OTHER BU
 }
 
 
-class TextBox
+class TextBox //Different sized textboxes in the future?
 {
     constructor()
     {
-        var draw = SVG().addTo('body').size('100%','100%');
+        var draw = SVG().addTo('body').size('100%','20%');
+        this.group = draw.group();
         this. polyline = draw.polyline('50,75, 50,50 50,75 400,75 400,50, 50,50') //400s are rectangle width. Change to make longer or shorter
-        this.polyline.fill('none').move(20, 20)
+        this.polyline.fill('transparent').move(20, 20)
         this.polyline.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' })
+        this.textContents = "Test";
+        this.text = draw.text(this.textContents);
+        this.text.move(28,24);
+        this.endBox = draw.polyline('363,50 363,17 30,17');
+        this.endBox.stroke({ color: 'transparent', width: 4, linecap: 'round', linejoin: 'round', fill: 'transparent'})
+        this.endBox.fill('transparent');
+        this.group.add(this.polyline);
+        this.group.add(this.text);
+        this.group.add(this.endBox);
+        this.canType = false;
+        this.maxTextLength = 44;
         this.clickEvent = null
+        self = this;
+
+        this.enableTyping();
+        this.readUserInput(this.text, this.textContents);
+    }
+
+    enableTyping()
+    {
+        self.group.mouseover(function(){
+            self.text.text(self.textContents + '|');
+            self.canType = true;
+        })
+
+        self.group.mouseout(function(){
+            self.text.text(self.textContents);
+            self.canType = false;
+        })
+    }
+
+    readUserInput()
+    {
+        window.addEventListener('keydown', function(event){
+            if(self.canType)
+            {
+                if (event.key == "Backspace")
+                    self.textContents = self.textContents.slice(0, self.textContents.length-1)
+
+                else if(self.checkEndOfTextBox())
+                {
+                   console.log(event);
+                   if (!(event.key.length > 1))
+                    {
+                        self.textContents = self.textContents+ event.key;
+                        console.log("Typed");
+                    }         
+                }
+                else
+                    console.log("texbox full.");
+            }
+            self.text.text(self.textContents + '|');
+        })
+    }
+    checkEndOfTextBox()
+    {
+        var textEdge = this.text.bbox();
+        var endTexBox = this.endBox.bbox();
+
+        return textEdge.width <= endTexBox.width;
+    }
+
+}
+
+class ScrollBar
+{
+    constructor(length)
+    {
+        var draw = SVG().addTo('body').size('100%','50%');
+        this.upButton = draw.rect(50,50).fill('red');
+        this.scrollArea = draw.rect(50, 100)
+
     }
 }
 
-
+export{ScrollBar}
 export{TextBox}
 export{RadioButtons}
 export{CheckBoxes}
