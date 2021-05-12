@@ -19,7 +19,7 @@ var radiobuttons = new RadioButtons(5);
 
 var textbox = new TextBox();
 
-var scrollbar = new ScrollBar(10);
+var scrollbar = new ScrollBar(300);
 
 
 

@@ -180,9 +180,9 @@ class TextBox //Different sized textboxes in the future?
         this. polyline = draw.polyline('50,75, 50,50 50,75 400,75 400,50, 50,50') //400s are rectangle width. Change to make longer or shorter
         this.polyline.fill('transparent').move(20, 20)
         this.polyline.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' })
-        this.textContents = "Test";
+        this.textContents = "";
         this.text = draw.text(this.textContents);
-        this.text.move(28,24);
+        this.text.move(28,17);
         this.endBox = draw.polyline('363,50 363,17 30,17');
         this.endBox.stroke({ color: 'transparent', width: 4, linecap: 'round', linejoin: 'round', fill: 'transparent'})
         this.endBox.fill('transparent');
@@ -194,11 +194,11 @@ class TextBox //Different sized textboxes in the future?
         this.clickEvent = null
         self = this;
 
-        this.enableTyping();
-        this.readUserInput(this.text, this.textContents);
+        this.enableTyping(self);
+        this.readUserInput(self);
     }
 
-    enableTyping()
+    enableTyping(self)
     {
         self.group.mouseover(function(){
             self.text.text(self.textContents + '|');
@@ -209,9 +209,19 @@ class TextBox //Different sized textboxes in the future?
             self.text.text(self.textContents);
             self.canType = false;
         })
+
+        self.text.mouseout(function(){
+            self.text.text(self.textContents);
+            self.canType = false;
+        })
+
+        self.polyline.mouseout(function(){
+            self.text.text(self.textContents);
+            self.canType = false;
+        })
     }
 
-    readUserInput()
+    readUserInput(self)
     {
         window.addEventListener('keydown', function(event){
             if(self.canType)
@@ -223,15 +233,17 @@ class TextBox //Different sized textboxes in the future?
                 {
                    console.log(event);
                    if (!(event.key.length > 1))
-                    {
-                        self.textContents = self.textContents+ event.key;
-                        console.log("Typed");
-                    }         
+                        self.textContents = self.textContents+ event.key;       
                 }
+
                 else
                     console.log("texbox full.");
+                
+                self.text.text(self.textContents + '|');
             }
-            self.text.text(self.textContents + '|');
+            else
+                self.text.text(self.textContents);
+            
         })
     }
     checkEndOfTextBox()
@@ -241,17 +253,53 @@ class TextBox //Different sized textboxes in the future?
 
         return textEdge.width <= endTexBox.width;
     }
-
 }
 
 class ScrollBar
 {
     constructor(length)
     {
-        var draw = SVG().addTo('body').size('100%','50%');
-        this.upButton = draw.rect(50,50).fill('red');
-        this.scrollArea = draw.rect(50, 100)
+        if (length < 100)
+            this.barLength = 100;
+        else
+            this.barLength = length;
 
+        var draw = SVG().addTo('body').size('100%','100%');
+        this.upButton = draw.polyline('50,50 50,75 75,75 75,50 50,50');
+        this.upButton.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' });
+        this.upButton.fill('transparent');
+
+        this.scrollArea = draw.polyline([[50,75], [50,this.barLength], [75,this.barLength], [75,75], [50,75]]);
+        this.scrollArea.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' });
+        this.scrollArea.fill('gray');
+       
+        this.downButton = draw.polyline([[50,this.barLength], [50,this.barLength+25], [75,this.barLength+25], [75,this.barLength]]);
+        this.downButton.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' });
+        this.downButton.fill('transparent');
+
+        this.scroller = draw.polyline('54,78 54,96 71,96 71,78 54,78');
+        this.scroller.stroke({ color: '#f23f8d', width: 4, linecap: 'round', linejoin: 'round' });
+        this.scroller.fill('black');
+
+        this.isHeld = false;
+
+
+        self=this;
+
+        this.dragScroller();
+    }
+
+    dragScroller()
+    {
+        this.scroller.mousedown(function(event){
+            self.isHeld = true;
+            console.log('Holding');
+        })
+
+        this.scroller.mouseup(function(event){
+            self.isHeld = false;
+            console.log('Not Holding');
+        })
     }
 }
 
