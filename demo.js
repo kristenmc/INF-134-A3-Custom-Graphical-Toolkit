@@ -5,6 +5,7 @@ import {CheckBoxes} from './mytoolkit.js';
 import {RadioButtons} from './mytoolkit.js';
 import {TextBox} from './mytoolkit.js';
 import {ScrollBar} from './mytoolkit.js';
+import {ProgressBar} from './mytoolkit.js';
 
 // Implement a MyToolkit Button
 var btn = new MyToolkit.Button;
@@ -19,7 +20,9 @@ var radiobuttons = new RadioButtons(5);
 
 var textbox = new TextBox();
 
-var scrollbar = new ScrollBar(300);
+var scrollbar = new ScrollBar(200);
+
+var progressbar = new ProgressBar(50);
 
 
 

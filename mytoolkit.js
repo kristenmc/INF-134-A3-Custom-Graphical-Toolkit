@@ -178,7 +178,7 @@ class TextBox //Different sized textboxes in the future?
         var draw = SVG().addTo('body').size('100%','20%');
         this.group = draw.group();
         this. polyline = draw.polyline('50,75, 50,50 50,75 400,75 400,50, 50,50') //400s are rectangle width. Change to make longer or shorter
-        this.polyline.fill('transparent').move(20, 20)
+        this.polyline.fill('white').move(20, 20)
         this.polyline.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' })
         this.textContents = "";
         this.text = draw.text(this.textContents);
@@ -243,7 +243,6 @@ class TextBox //Different sized textboxes in the future?
             }
             else
                 self.text.text(self.textContents);
-            
         })
     }
     checkEndOfTextBox()
@@ -257,17 +256,17 @@ class TextBox //Different sized textboxes in the future?
 
 class ScrollBar
 {
-    constructor(length)
+    constructor(length) //NOTE TO SELF: CHECK TO SEE IF MOVING SCROLL THUMB WOULD BE OVER LIMIT. IF SO, ONLY MOVE TO LIMIT, NOT PAST IT
     {
         if (length < 100)
             this.barLength = 100;
         else
             this.barLength = length;
 
-        var draw = SVG().addTo('body').size('100%','100%');
+        var draw = SVG().addTo('body').size('100%','75%');
         this.upButton = draw.polyline('50,50 50,75 75,75 75,50 50,50');
         this.upButton.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' });
-        this.upButton.fill('transparent');
+        this.upButton.fill('white');
 
         this.scrollArea = draw.polyline([[50,75], [50,this.barLength], [75,this.barLength], [75,75], [50,75]]);
         this.scrollArea.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' });
@@ -275,36 +274,139 @@ class ScrollBar
        
         this.downButton = draw.polyline([[50,this.barLength], [50,this.barLength+25], [75,this.barLength+25], [75,this.barLength]]);
         this.downButton.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' });
-        this.downButton.fill('transparent');
+        this.downButton.fill('white');
 
         this.scroller = draw.polyline('54,78 54,96 71,96 71,78 54,78');
         this.scroller.stroke({ color: '#f23f8d', width: 4, linecap: 'round', linejoin: 'round' });
         this.scroller.fill('black');
 
+        this.scrollBorderUpper = draw.line(50,78,75,78);
+        this.scrollBorderUpper.stroke({ color: '#34b7eb', width: 4, linecap: 'round'});
+
+        this.scrollBorderLower = draw.line(50,this.barLength-5, 75,this.barLength-5);
+        this.scrollBorderLower.stroke({ color: '#34b7eb', width: 4, linecap: 'round'});
+
         this.isHeld = false;
-
-
         self=this;
 
-        this.dragScroller();
+        this.enableDrag();
+        this.dragScroller(this.scroller);
+        this.clickButtons(this.scroller);
     }
 
-    dragScroller()
+    enableDrag()
     {
         this.scroller.mousedown(function(event){
             self.isHeld = true;
-            console.log('Holding');
         })
 
         this.scroller.mouseup(function(event){
             self.isHeld = false;
-            console.log('Not Holding');
         })
+
+        window.addEventListener('mouseup', function(event){
+            self.isHeld = false;
+          })
+    }
+
+    dragScroller(scroll)
+    {
+        window.addEventListener('mousemove', function(event){
+            if (self.isHeld)
+            {
+                console.log("event: " + event.clientY)    
+                console.log("scroller: " + scroll.y())
+
+                if (self.atUpperBorder())
+                {
+                    console.log("At Top")
+                    if(event.clientY > scroll.y())
+                        scroll.y(event.clientY);     
+                }
+                else if (self.atLowerBorder())
+                {
+                    console.log("At Bottom")
+                    if(event.clientY < scroll.y())
+                        scroll.y(event.clientY); 
+                }
+                else
+                    scroll.y(event.clientY);
+            }     
+        })
+    }
+
+    clickButtons(scroll)
+    {
+        this.upButton.mousedown(function(event){
+            this.fill('pink');
+
+            if (self.atUpperBorder())
+            {
+                if(event.clientY > scroll.y())
+                    scroll.y(scroll.y()-5);
+            }  
+            else
+                scroll.y(scroll.y()-5);
+        })
+
+        this.downButton.mousedown(function(event){
+            this.fill('pink');
+
+            if (self.atLowerBorder())
+            {
+                if(event.clientY < scroll.y())
+                    scroll.y(scroll.y()+5);
+            }
+            else
+                scroll.y(scroll.y()+5);
+        })
+
+        this.upButton.mouseup(function(event){
+            this.fill('white');
+        })
+
+        this.downButton.mouseup(function(event){
+            this.fill('white');
+        })
+    }
+
+    atUpperBorder()
+    {
+        var upperBorderBox = this.scrollBorderUpper.bbox();
+        var scrollerBox = this.scroller.bbox();
+
+        return scrollerBox.y <= upperBorderBox.y;
+    }
+
+    atLowerBorder()
+    {
+        var lowerBorderBox = this.scrollBorderLower.bbox();
+        var scrollerBox = this.scroller.bbox();
+
+        return (scrollerBox.y + 2*(scrollerBox.cy -scrollerBox.y))>= lowerBorderBox.y;
     }
 }
 
+class ProgressBar //Close bar at end sso the only part that fills is the rectangle in the middle
+{
+    constructor(barValue)
+    {
+        var draw = SVG().addTo('body').size('100%','20%');
+        this.bar = draw.rect(400, 30)
+        this.bar.move(50,50);
+        this.bar.radius(15)
+        this.bar.stroke({color: 'black', width: 4});
+        this.bar.fill('transparent');
+
+        this.barGroup
+
+        this.barFilling
+    }
+}
+
+export{MyToolkit}
 export{ScrollBar}
 export{TextBox}
 export{RadioButtons}
 export{CheckBoxes}
-export{MyToolkit}
+export{ProgressBar}
