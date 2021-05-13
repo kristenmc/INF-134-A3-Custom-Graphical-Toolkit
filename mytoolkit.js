@@ -6,19 +6,23 @@ var MyToolkit = (function() {
     var Button = function(){
         var draw = SVG().addTo('body').size('50%','50%');
         var rect = draw.rect(100,50).fill('red')
+        rect.stroke({color: 'gray', width: 4, linecap: 'round', linejoin: 'round'});
         var clickEvent = null
 
         rect.mouseover(function(){
-            this.fill({ color: 'blue'})
+            this.fill({ color: 'orange'})
         })
         rect.mouseout(function(){
             this.fill({ color: 'red'})
+            this.stroke({color: 'gray'})
         })
         rect.mouseup(function(){
-            this.fill({ color: 'red'})
+            this.fill({ color: 'orange'})
+            this.stroke({color: 'gray'})
         })
-        rect.click(function(event){
+        rect.mousedown(function(event){
             this.fill({ color: 'pink'})
+            this.stroke({color: 'black'})
             if(clickEvent != null)
                 clickEvent(event)
         })
@@ -38,23 +42,42 @@ class SingleCheckBox
 {
     constructor()
     {
-        var draw = SVG().addTo('body').size('60%','20%');
-        this.rect = draw.rect(50,50).fill('blue')
+        var draw = SVG().addTo('body').size('60%','36');
+        this.group = draw.group();
+
+        this.rect = draw.rect(25,25).fill('white')
+        this.rect.stroke({color: 'black', width: 4, linecap: 'round', linejoin: 'round'});
+
+        this.checkmark = draw.polyline('8,14, 12,19 18,6');
+        this.checkmark.fill('transparent');
+        this.checkmark.stroke({color: 'transparent', width: 2, linecap: 'round', linejoin: 'round'});
+
+        this.group.add(this.rect);
+        this.group.add(this.checkmark);
+
+        this.group.move(5,5);
+
         this.clickEvent = null
         this.checked = false;
         
-        this.rect.click(function(event){
-            if (!this.checked)
+        this.clickBox(this);
+   
+    }
+
+    clickBox(self)
+    {
+        this.group.click(function(event){
+            if (!self.checked)
             {
-                this.fill({ color: 'pink'})
-                this.checked = true;
-                this.clickEvent = event;
+                self.checkmark.stroke({color: 'black'});
+                self.checked = true;
+                self.clickEvent = event;
             } 
             else
             {
-                this.fill({color: 'blue'})
-                this.checked = false;
-                this.clickEvent = event;
+                self.checkmark.stroke({color: 'transparent'});
+                self.checked = false;
+                self.clickEvent = event;
             }     
         })
     }
@@ -99,8 +122,19 @@ class SingleRadioButton
     constructor(buttonNum)
     {
         this.buttonNum = buttonNum;
-        var draw = SVG().addTo('body').size('60%','20%');
-        this.circle = draw.circle(50).fill('purple')
+        var draw = SVG().addTo('body').size('100%','36');
+        this.group = draw.group();
+        this.circle = draw.circle(25).fill('white');
+        this.circle.stroke({color: 'black', width: 4});
+
+        this.filling = draw.circle(15).fill('transparent');
+        this.filling.move(5,5);
+
+        this.group.add(this.circle);
+        this.group.add(this.filling);
+
+
+        this.isChecked = false;
         this.clickEvent = null
 
         self = this;
@@ -110,7 +144,7 @@ class SingleRadioButton
 
     move(x, y)
     {
-        this.circle.move(x, y);
+        this.group.move(x, y);
     }
 
     onclick(eventHandler)
@@ -120,9 +154,22 @@ class SingleRadioButton
 
     colorChange(button)
     {
-        this.circle.click(function(event){
-            this.fire('buttonChecked', button, SingleRadioButton);
+        this.group.click(function(event){
+            this.fire('buttonChecked', button);
+            console.log("Button " + button + " has been pressed");
         })
+    }
+
+    uncheckButton()
+    {
+        this.isChecked = false;
+        this.filling.fill('transparent');
+    }
+
+    checkButton()
+    {
+        this.isChecked = true;
+        this.filling.fill('purple');
     }
 }
 
@@ -131,19 +178,21 @@ class RadioButtons  //FIRE CUSTOM EVEN FROM SINGLE RADIO BUTTON TO TELL OTHER BU
 {
     constructor(numButtons)
     {
+        var draw = SVG().addTo('body').size('0','0');
         this.radioList = [];
         self = this;
 
         for(var i = 0; i < numButtons; i++)
         {
-            this.radioList.push(new SingleRadioButton(i));
+            var newButton = new SingleRadioButton(i);
+            this.radioList.push(newButton);
+            newButton.move(25,5);
         }
 
         for(var i = 0; i < this.radioList.length; i++)
         {
             this.checkColorChange(i, this.radioList.length, this.radioList);
-        }
-            
+        }   
     }
 
     move(x, y)
@@ -154,24 +203,24 @@ class RadioButtons  //FIRE CUSTOM EVEN FROM SINGLE RADIO BUTTON TO TELL OTHER BU
 
     checkColorChange(index, listLength, radioList)
     {
-        this.radioList[index].circle.on('buttonChecked', function(num) {
+        this.radioList[index].group.on('buttonChecked', function(num) {
             self.currentlyChecked = num.detail;
             console.log(index)
             console.log(num)
 
             for (var i = 0; i < listLength; i++)
             {
-                radioList[i].circle.fill({ color: 'purple'});
+                radioList[i].uncheckButton();
             }
 
-            radioList[index].circle.fill({ color: 'pink'})
+            radioList[index].checkButton();
         })
     }
 
 }
 
 
-class TextBox //Different sized textboxes in the future?
+class TextBox //Note to self: remove caret on window.mouseout
 {
     constructor()
     {
@@ -183,7 +232,7 @@ class TextBox //Different sized textboxes in the future?
         this.textContents = "";
         this.text = draw.text(this.textContents);
         this.text.move(28,17);
-        this.endBox = draw.polyline('363,50 363,17 30,17');
+        this.endBox = draw.polyline('360,50 360,17 30,17');
         this.endBox.stroke({ color: 'transparent', width: 4, linecap: 'round', linejoin: 'round', fill: 'transparent'})
         this.endBox.fill('transparent');
         this.group.add(this.polyline);
@@ -290,8 +339,8 @@ class ScrollBar
         self=this;
 
         this.enableDrag();
-        this.dragScroller(this.scroller);
-        this.clickButtons(this.scroller);
+        this.dragScroller(this.scroller, this);
+        this.clickButtons(this.scroller, this);
     }
 
     enableDrag()
@@ -309,7 +358,7 @@ class ScrollBar
           })
     }
 
-    dragScroller(scroll)
+    dragScroller(scroll, self)
     {
         window.addEventListener('mousemove', function(event){
             if (self.isHeld)
@@ -335,7 +384,7 @@ class ScrollBar
         })
     }
 
-    clickButtons(scroll)
+    clickButtons(scroll, self)
     {
         this.upButton.mousedown(function(event){
             this.fill('pink');
@@ -387,21 +436,184 @@ class ScrollBar
     }
 }
 
-class ProgressBar //Close bar at end sso the only part that fills is the rectangle in the middle
+class ProgressBar
 {
-    constructor(barValue)
+    constructor(barWidth, barPercentage)
     {
-        var draw = SVG().addTo('body').size('100%','20%');
-        this.bar = draw.rect(400, 30)
+        if (barWidth < 30)
+            this.barWidth = 30;
+        else
+            this.barWidth = barWidth;
+
+        if (barPercentage < 0)
+            this.barPerc = 0
+        else if (barPercentage > 100)
+            this.barPerc = 100;
+        else
+            this.barPerc = barPercentage
+
+        var draw = SVG().addTo('body').size('100%','100%');
+        this.bar = draw.rect(this.barWidth, 20)
         this.bar.move(50,50);
         this.bar.radius(15)
         this.bar.stroke({color: 'black', width: 4});
         this.bar.fill('transparent');
 
-        this.barGroup
+        var leftCircle1 = draw.circle(11);
+        leftCircle1.move(52,51);
+        var leftCircle2 = draw.circle(11);
+        leftCircle2.move(52,58);
+        var leftCircle3 = draw.circle(5);
+        leftCircle3.move(50,58);
+        this.leftEdge = draw.line(62,50,62,70).stroke({color: 'black' ,width: 2})
 
-        this.barFilling
+        var rightCircle1 = draw.circle(11);
+        rightCircle1.move(386,51);
+        var rightCircle2 = draw.circle(11);
+        rightCircle2.move(386,58);
+        var rightCircle3 = draw.circle(8);
+        rightCircle3.move(393,56);
+        this.rightEdge = draw.line(387,50,387,70).stroke({color: 'black' ,width: 2})
+
+        this.movingParts = draw.group();
+        this.movingParts.add(rightCircle1);
+        this.movingParts.add(rightCircle2);
+        this.movingParts.add(rightCircle3);
+        this.movingParts.add(this.rightEdge);
+
+        var rightFilling = this.bar.width()+37;
+        this.movingParts.x(rightFilling);
+
+        this.fullBarValue = this.rightEdge.x() - this.leftEdge.x(); 
+        this.barFillNum = this.barPerc*0.01*this.fullBarValue;
+        this.barFilling = draw.rect(this.barFillNum,16);
+        this.barFilling.fill('pink');
+        this.barFilling.move(63,52);
     }
+
+    setValue(newValue)
+    {
+        if (newValue < 0)
+        {
+            this.barFillNum = 0;
+            this.barPerc = 0;
+        }
+            
+        else if (newValue > 100)
+        {
+            this.barFillNum = this.fullBarValue;
+            this.barPerc = 100;
+        } 
+        else
+        {
+            this.barPerc = newValue;
+            this.barFillNum = this.barPerc*0.01*this.fullBarValue;
+        }
+            
+
+        this.barFilling.width(this.barFillNum);
+    }
+    setWidth(newWidth)
+    {
+        if (newWidth < 30)
+            this.barWidth = 30;
+        else
+            this.barWidth = newWidth;
+
+        this.bar.width(newWidth);
+
+        var rightFilling = this.bar.width()+37;
+        this.movingParts.x(rightFilling);
+
+        this.fullBarValue = this.rightEdge.x() - this.leftEdge.x(); 
+
+        this.barFilling.width(this.barPerc*0.01*this.fullBarValue);
+    }
+    getValue()
+    {
+        return this.barPerc;
+    }
+}
+
+
+
+class ToggleSwitch
+{
+    constructor(startState)
+    {
+        var draw = SVG().addTo('body').size('100%','100%');
+        this.switchArea = draw.rect(60, 40); 
+        this.switchArea.radius(20)
+        this.switchArea.move(50,50); 
+        this.switchArea.fill('gray');
+        this.switchArea.stroke({color: 'black', width: 4});
+
+        this.switch = draw.circle(34);
+        this.switch.move(53,53)
+        this.switch.fill('white');
+        this.switch.stroke({color: '#ccd1d9', width: 2});
+        
+        this.group = draw.group();
+
+        this.group.add(this.switchArea);
+        this.group.add(this.switch);
+
+        this.offX = 53;
+        this.onX = 73;
+
+        this.isOn = false;
+        self = this;
+
+        if (startState)
+        {
+            this.isOn = true;
+            this.switch.move(this.onX, this.switch.y());
+            this.switchArea.fill('#60e356');
+        }
+
+
+
+        this.flipSwitch();
+    }
+
+    flipSwitch()
+    {
+        this.group.mousedown(function(event){
+            if (!self.isOn)
+                self.switchOn();    
+            else
+                self.switchOff();    
+        })
+                
+    }
+
+    switchOff()
+    {
+        this.isOn = false;
+        this.switch.animate({duration: 100}).move(this.offX, this.switch.y());
+        this.switchArea.fill('gray');
+    }
+
+    switchOn()
+    {
+        this.isOn = true;
+        this.switch.animate({duration: 100}).move(this.onX, this.switch.y());
+        this.switchArea.fill('#60e356');
+    }
+
+    move(x,y)
+    {
+        this.group.move(x,y);
+        this.onX = x+23;
+        this.offX = x+3;
+    }
+
+    isEnabled()
+    {
+        return this.isOn;
+    }
+
+
 }
 
 export{MyToolkit}
@@ -410,3 +622,4 @@ export{TextBox}
 export{RadioButtons}
 export{CheckBoxes}
 export{ProgressBar}
+export{ToggleSwitch}
