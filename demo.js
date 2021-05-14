@@ -11,13 +11,29 @@ import {ToggleSwitch} from './mytoolkit.js';
 // Implement a MyToolkit Button
 var btn = new MyToolkit.Button;
 btn.move(100,100);
-btn.onclick(function(e){
+btn.onClick(function(e){
+	//console.log(e);
+});
+btn.onStateChange(function(e){
+	//console.log(e);
+});
+btn.setText("Hellooooooo");
+
+var checkboxes = new CheckBoxes(3);
+checkboxes.onClick(function(e){
+	//console.log(e);
+});
+checkboxes.onStateChange(function(e){
+	//console.log(e);
+});
+
+var radiobuttons = new RadioButtons(5);
+radiobuttons.onClick(function(e){
 	console.log(e);
 });
 
-var checkboxes = new CheckBoxes(3);
-
-var radiobuttons = new RadioButtons(5);
+radiobuttons.setText(3, "Hello!");
+radiobuttons.setText(1, "Oh No!");
 
 var textbox = new TextBox();
 

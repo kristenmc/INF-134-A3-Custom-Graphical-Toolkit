@@ -5,33 +5,67 @@ import {SVG} from './svg.min.js';
 var MyToolkit = (function() {
     var Button = function(){
         var draw = SVG().addTo('body').size('50%','50%');
-        var rect = draw.rect(100,50).fill('red')
-        rect.stroke({color: 'gray', width: 4, linecap: 'round', linejoin: 'round'});
-        var clickEvent = null
+        var idleGradient = draw.gradient('linear', function(add) {
+            add.stop(0, 'orange')
+            add.stop(0.5, 'pink')
+            add.stop(1, 'orange')
+        })
+        idleGradient.from(0, 0).to(0, 1)
+        var rect = draw.rect(100,50).fill(idleGradient)
+        rect.stroke({color: 'gray', width: 2, linecap: 'round', linejoin: 'round'});
 
-        rect.mouseover(function(){
-            this.fill({ color: 'orange'})
+        var boxText = draw.text('Text');
+        boxText.move(49,17);
+        boxText.fill('black');
+        boxText.font({family: 'Trebuchet MS', anchor: 'middle'})
+
+        var group = draw.group();
+        group.add(rect);
+        group.add(boxText);
+
+        var clickEvent = null;
+        var stateChangeEvent = null;
+
+        group.mouseover(function(event){
+            rect.fill({ color: 'orange'})
+            rect.stroke({color: 'gray', width: 3});
+            boxText.fill('black');
+            stateChangeEvent(event)
         })
-        rect.mouseout(function(){
-            this.fill({ color: 'red'})
-            this.stroke({color: 'gray'})
+        group.mouseout(function(event){
+            rect.fill({ color: idleGradient})
+            rect.stroke({color: 'gray', width: 2})
+            boxText.fill('black');
+            stateChangeEvent(event)
         })
-        rect.mouseup(function(){
-            this.fill({ color: 'orange'})
-            this.stroke({color: 'gray'})
+        group.mouseup(function(event){
+            rect.fill({ color: 'orange'})
+            rect.stroke({color: 'black', width: 3})
+            boxText.fill('black');
+            stateChangeEvent(event)
         })
-        rect.mousedown(function(event){
-            this.fill({ color: 'pink'})
-            this.stroke({color: 'black'})
+        group.mousedown(function(event){
+            rect.fill({ color: 'pink'})
+            rect.stroke({color: 'black', width: 4})
+            boxText.fill('gray');
             if(clickEvent != null)
                 clickEvent(event)
+            if (stateChangeEvent != null)
+                stateChangeEvent(event)
         })
         return {
             move: function(x, y) {
-                rect.move(x, y);
+                group.move(x, y);
             },
-            onclick: function(eventHandler){
+            onClick: function(eventHandler){
                 clickEvent = eventHandler
+            },
+            onStateChange: function(eventHandler){
+                stateChangeEvent = eventHandler
+            },
+            setText(string)
+            {
+                boxText.text(string);
             }
         }
     }
@@ -40,7 +74,7 @@ return {Button}
 
 class SingleCheckBox
 {
-    constructor()
+    constructor(buttonNum)
     {
         var draw = SVG().addTo('body').size('60%','36');
         this.group = draw.group();
@@ -54,14 +88,15 @@ class SingleCheckBox
 
         this.group.add(this.rect);
         this.group.add(this.checkmark);
-
         this.group.move(5,5);
 
-        this.clickEvent = null
+        this.buttonNum = buttonNum;
+        this.clickEvent = null;
+        this.stateChangeEvent = null;
         this.checked = false;
         
         this.clickBox(this);
-   
+        this.otherStateChanges(this);
     }
 
     clickBox(self)
@@ -78,18 +113,40 @@ class SingleCheckBox
                 self.checkmark.stroke({color: 'transparent'});
                 self.checked = false;
                 self.clickEvent = event;
-            }     
+            }
+            this.fire('checkboxClicked', self.buttonNum); 
+            if (self.clickEvent != null)
+                self.clickEvent(event);
+            if (self.stateChangeEvent != null)
+                self.stateChangeEvent(event);    
+        })
+    }
+
+    otherStateChanges(self)
+    {
+        this.group.mouseover(function(event){
+            if (self.stateChangeEvent != null)
+                self.stateChangeEvent(event);
+        })
+        this.group.mouseout(function(event){
+            if (self.stateChangeEvent != null)
+                self.stateChangeEvent(event);
         })
     }
 
     move(x, y)
     {
-        this.rect.move(x, y);
+        this.group.move(x, y);
     }
 
-    onclick(eventHandler)
+    onClick(eventHandler)
     {
         this.clickEvent = eventHandler;
+    }
+
+    onStateChange(eventHandler)
+    {
+        this.stateChangeEvent = eventHandler
     }
 }
 
@@ -97,11 +154,12 @@ class CheckBoxes
 {
     constructor(numButtons)
     {
+        this.draw = SVG().addTo('body').size('0','0');
         this.checkboxList = [];
         this.clickEvent = null;
 
         for(var i = 0; i < numButtons; i++)
-            this.checkboxList.push(new SingleCheckBox());
+            this.checkboxList.push(new SingleCheckBox(i));
     }
 
     move(x, y)
@@ -110,9 +168,26 @@ class CheckBoxes
             this.checkboxList[i].move(x,y);
     }
 
-    onclick(eventHandler)
+    onClick(eventHandler)
     {
-        this.clickEvent = eventHandler;
+        var self = this;
+        for(var i = 0; i < this.checkboxList.length; i++)
+        {
+            this.checkboxList[i].group.on('checkboxClicked', function(event){
+                self.checkboxList[event.detail].clickEvent = eventHandler;
+            })
+        }
+    }
+
+    onStateChange(eventHandler)
+    {
+        var self = this;
+        for(var i = 0; i < this.checkboxList.length; i++)
+        {
+            this.checkboxList[i].group.on('checkboxClicked', function(event){
+                self.checkboxList[event.detail].stateChangeEvent = eventHandler;
+            })
+        }
     }
 }
 
@@ -130,11 +205,16 @@ class SingleRadioButton
         this.filling = draw.circle(15).fill('transparent');
         this.filling.move(5,5);
 
+        this.text = draw.text("Test " + buttonNum);
+        this.text.move(35,3);
+        this.text.font({family: 'Trebuchet MS'});
+
         this.group.add(this.circle);
         this.group.add(this.filling);
-
+        this.group.add(this.text);
 
         this.isChecked = false;
+        this.previouslyChecked = false;
         this.clickEvent = null
 
         self = this;
@@ -147,16 +227,33 @@ class SingleRadioButton
         this.group.move(x, y);
     }
 
-    onclick(eventHandler)
+    onClick(eventHandler)
     {
         this.clickEvent = eventHandler;
     }
 
+    onStateChange(eventHandler)
+    {
+        this.stateChangeEvent = eventHandler;
+    }
+
+
     colorChange(button)
     {
         this.group.click(function(event){
-            this.fire('buttonChecked', button);
-            console.log("Button " + button + " has been pressed");
+            this.fire('buttonChecked', {buttonNum: button,Event: event});
+        })
+    }
+
+    otherStateChanges(self)
+    {
+        this.group.mouseover(function(event){
+            if (self.stateChangeEvent != null)
+                self.stateChangeEvent(event);
+        })
+        this.group.mouseout(function(event){
+            if (self.stateChangeEvent != null)
+                self.stateChangeEvent(event);
         })
     }
 
@@ -170,6 +267,11 @@ class SingleRadioButton
     {
         this.isChecked = true;
         this.filling.fill('purple');
+    }
+
+    setText(newText)
+    {
+        this.text.text(newText);
     }
 }
 
@@ -186,7 +288,7 @@ class RadioButtons  //FIRE CUSTOM EVEN FROM SINGLE RADIO BUTTON TO TELL OTHER BU
         {
             var newButton = new SingleRadioButton(i);
             this.radioList.push(newButton);
-            newButton.move(25,5);
+            newButton.move(5,5);
         }
 
         for(var i = 0; i < this.radioList.length; i++)
@@ -203,24 +305,66 @@ class RadioButtons  //FIRE CUSTOM EVEN FROM SINGLE RADIO BUTTON TO TELL OTHER BU
 
     checkColorChange(index, listLength, radioList)
     {
-        this.radioList[index].group.on('buttonChecked', function(num) {
-            self.currentlyChecked = num.detail;
-            console.log(index)
-            console.log(num)
-
+        this.radioList[index].group.on('buttonChecked', function(data) {
+            self.currentlyChecked = data.detail.buttonNum;
             for (var i = 0; i < listLength; i++)
             {
                 radioList[i].uncheckButton();
             }
 
             radioList[index].checkButton();
+            if (radioList[index].clickEvent != null)
+            {
+                radioList[index].clickEvent("Button: " + data.detail.buttonNum)
+                radioList[index].clickEvent(data.detail.Event);
+            }    
         })
     }
 
+    setText(buttonNum, newText)
+    {
+        if (buttonNum >= 0 & buttonNum < this.radioList.length)
+            this.radioList[buttonNum].setText(newText);
+    }
+
+    onClick(eventHandler)
+    {
+        var self = this;
+        for(var i = 0; i < this.radioList.length; i++)
+        {
+            this.radioList[i].group.on('buttonChecked', function(data){
+                self.radioList[data.detail.buttonNum].clickEvent = eventHandler;
+                if (!self.radioList[data.detail.buttonNum].previouslyChecked)
+                {
+                    self.radioList[data.detail.buttonNum].clickEvent("Button: " + data.detail.buttonNum);
+                    self.radioList[data.detail.buttonNum].clickEvent(data.detail.Event);
+                    self.radioList[data.detail.buttonNum].previouslyChecked = true;
+                }
+            })
+        }
+    }
+/*
+    onStateChange(eventHandler)
+    {
+        var self = this;
+        for(var i = 0; i < this.radioList.length; i++)
+        {
+            this.radioList[i].group.on('buttonChecked', function(data){
+                self.radioList[data.detail.buttonNum].clickEvent = eventHandler;
+                if (!self.radioList[data.detail.buttonNum].previouslyChecked)
+                {
+                    self.radioList[data.detail.buttonNum].clickEvent("Button: " + data.detail.buttonNum);
+                    self.radioList[data.detail.buttonNum].clickEvent(data.detail.Event);
+                    self.radioList[data.detail.buttonNum].previouslyChecked = true;
+                }
+            })
+        }
+    }
+*/
 }
 
 
-class TextBox //Note to self: remove caret on window.mouseout
+class TextBox
 {
     constructor()
     {
@@ -243,11 +387,11 @@ class TextBox //Note to self: remove caret on window.mouseout
         this.clickEvent = null
         self = this;
 
-        this.enableTyping(self);
+        this.enableTyping(self, draw);
         this.readUserInput(self);
     }
 
-    enableTyping(self)
+    enableTyping(self, draw)
     {
         self.group.mouseover(function(){
             self.text.text(self.textContents + '|');
@@ -265,6 +409,10 @@ class TextBox //Note to self: remove caret on window.mouseout
         })
 
         self.polyline.mouseout(function(){
+            self.text.text(self.textContents);
+            self.canType = false;
+        })
+        draw.mouseout(function(){
             self.text.text(self.textContents);
             self.canType = false;
         })
