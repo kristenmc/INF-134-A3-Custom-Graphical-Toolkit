@@ -2,26 +2,26 @@
 
 import {SVG} from './svg.min.js';
 
-var draw = SVG().addTo('body').size('10000','10000'); 
-draw.attr({'overflow': 'visible'})
+var svgDraw = SVG().addTo('body').size('10000','10000'); 
+svgDraw.attr({'overflow': 'visible'})
 
 var MyToolkit = (function() {
     var Button = function(){
-        var idleGradient = draw.gradient('linear', function(add) {
+        var idleGradient = svgDraw.gradient('linear', function(add) {
             add.stop(0, 'orange')
             add.stop(0.5, 'pink')
             add.stop(1, 'orange')
         })
         idleGradient.from(0, 0).to(0, 1)
-        var rect = draw.rect(100,50).fill(idleGradient)
+        var rect = svgDraw.rect(100,50).fill(idleGradient)
         rect.stroke({color: 'gray', width: 2, linecap: 'round', linejoin: 'round'});
 
-        var boxText = draw.text('Text');
+        var boxText = svgDraw.text('Text');
         boxText.move(49,17);
         boxText.fill('black');
         boxText.font({family: 'Trebuchet MS', anchor: 'middle'})
 
-        var group = draw.group();
+        var group = svgDraw.group();
         group.add(rect);
         group.add(boxText);
 
@@ -78,16 +78,16 @@ class SingleCheckBox
 {
     constructor(buttonNum)
     {
-        this.group = draw.group();
+        this.group = svgDraw.group();
 
-        this.rect = draw.rect(25,25).fill('white')
+        this.rect = svgDraw.rect(25,25).fill('white')
         this.rect.stroke({color: 'black', width: 4, linecap: 'round', linejoin: 'round'});
 
-        this.checkmark = draw.polyline('8,14, 12,19 18,6');
+        this.checkmark = svgDraw.polyline('8,14, 12,19 18,6');
         this.checkmark.fill('transparent');
         this.checkmark.stroke({color: 'transparent', width: 2, linecap: 'round', linejoin: 'round'});
 
-        this.text = draw.text("Test " + buttonNum);
+        this.text = svgDraw.text("Test " + buttonNum);
         this.text.move(35,3);
         this.text.font({family: 'Trebuchet MS'});
 
@@ -178,7 +178,7 @@ class CheckBoxes
         this.checkboxList = [];
 
         for(var i = 0; i < numButtons; i++)
-            this.checkboxList.push(new SingleCheckBox(i, draw));
+            this.checkboxList.push(new SingleCheckBox(i, svgDraw));
     }
 
     move(x, y)
@@ -217,14 +217,14 @@ class SingleRadioButton
     constructor(buttonNum)
     {
         this.buttonNum = buttonNum;
-        this.group = draw.group();
-        this.circle = draw.circle(25).fill('white');
+        this.group = svgDraw.group();
+        this.circle = svgDraw.circle(25).fill('white');
         this.circle.stroke({color: 'black', width: 4});
 
-        this.filling = draw.circle(15).fill('transparent');
+        this.filling = svgDraw.circle(15).fill('transparent');
         this.filling.move(5,5);
 
-        this.text = draw.text("Test " + buttonNum);
+        this.text = svgDraw.text("Test " + buttonNum);
         this.text.move(35,3);
         this.text.font({family: 'Trebuchet MS'});
 
@@ -312,7 +312,7 @@ class RadioButtons
 
         for(var i = 0; i < numButtons; i++)
         {
-            var newButton = new SingleRadioButton(i, draw);
+            var newButton = new SingleRadioButton(i, svgDraw);
             this.radioList.push(newButton);
             newButton.move(5,5);
         }
@@ -382,14 +382,15 @@ class TextBox
 {
     constructor()
     {
-        this.group = draw.group();
-        this. polyline = draw.polyline('50,75, 50,50 50,75 400,75 400,50, 50,50') //400s are rectangle width. Change to make longer or shorter
+        this.group = svgDraw.group();
+        this. polyline = svgDraw.polyline('50,75, 50,50 50,75 400,75 400,50, 50,50') //400s are rectangle width. Change to make longer or shorter
         this.polyline.fill('white').move(20, 20)
         this.polyline.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' })
         this.textContents = "";
-        this.text = draw.text(this.textContents);
+        this.text = svgDraw.text(this.textContents);
+        this.text.font({family: 'Trebuchet MS'});
         this.text.move(28,17);
-        this.endBox = draw.polyline('360,50 360,17 30,17');
+        this.endBox = svgDraw.polyline('360,50 360,17 30,17');
         this.endBox.stroke({ color: 'transparent', width: 4, linecap: 'round', linejoin: 'round', fill: 'transparent'})
         this.endBox.fill('transparent');
         this.group.add(this.polyline);
@@ -401,7 +402,7 @@ class TextBox
         this.stateChangeEvent = null;
         self = this;
 
-        this.enableTyping(self, draw);
+        this.enableTyping(self, svgDraw);
         this.readUserInput(self);
     }
 
@@ -517,28 +518,36 @@ class ScrollBar
         else
             this.barLength = length;
 
-        console.log(draw.attr())
-        this.upButton = draw.polyline('0,0 0,25 25,25 25,0 0,0');
+        console.log(svgDraw.attr())
+        this.upButton = svgDraw.polyline('0,0 0,25 25,25 25,0 0,0');
         this.upButton.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' });
         this.upButton.fill('white');
 
-        this.scrollArea = draw.polyline([[0,25], [0,this.barLength], [25,this.barLength], [25,25], [0,25]]);
+        this.scrollArea = svgDraw.polyline([[0,25], [0,this.barLength], [25,this.barLength], [25,25], [0,25]]);
         this.scrollArea.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' });
         this.scrollArea.fill('gray');
        
-        this.downButton = draw.polyline([[0,this.barLength], [0,this.barLength+25], [25,this.barLength+25], [25,this.barLength]]);
+        this.downButton = svgDraw.polyline([[0,this.barLength], [0,this.barLength+25], [25,this.barLength+25], [25,this.barLength]]);
         this.downButton.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' });
         this.downButton.fill('white');
 
-        this.scroller = draw.polyline('4,28 4,46 21,46 21,28 4,28');
+        this.scroller = svgDraw.polyline('4,28 4,46 21,46 21,28 4,28');
         this.scroller.stroke({ color: '#f23f8d', width: 4, linecap: 'round', linejoin: 'round' });
         this.scroller.fill('black');
 
-        this.scrollBorderUpper = draw.line(0,28,25,28);
+        this.scrollBorderUpper = svgDraw.line(0,28,25,28);
         this.scrollBorderUpper.stroke({ color: '#34b7eb', width: 4, linecap: 'round'});
 
-        this.scrollBorderLower = draw.line(0,this.barLength-5, 25,this.barLength-5);
+        this.scrollBorderLower = svgDraw.line(0,this.barLength-5, 25,this.barLength-5);
         this.scrollBorderLower.stroke({ color: '#34b7eb', width: 4, linecap: 'round'});
+
+        this.group = svgDraw.group();
+        this.group.add(this.upButton)
+        this.group.add(this.scrollArea)
+        this.group.add(this.downButton)
+        this.group.add(this.scroller)
+        this.group.add(this.scrollBorderUpper)
+        this.group.add(this.scrollBorderLower)
 
         this.isHeld = false;
         self=this;
@@ -546,6 +555,15 @@ class ScrollBar
         this.enableDrag();
         this.dragScroller(this.scroller, this);
         this.clickButtons(this.scroller, this);
+    }
+    move(x,y)
+    {
+
+    }
+
+    setLength(newLength)
+    {
+
     }
 
     enableDrag()
@@ -662,35 +680,35 @@ class ProgressBar
         else
             this._barPerc = barPercentage
 
-        this._bar = draw.rect(this._barWidth, 20)
+        this._bar = svgDraw.rect(this._barWidth, 20)
         this._bar.move(50,50);
         this._bar.radius(15)
         this._bar.stroke({color: 'black', width: 4});
         this._bar.fill('transparent');
 
-        var leftCircle1 = draw.circle(11);
+        var leftCircle1 = svgDraw.circle(11);
         leftCircle1.move(52,51);
-        var leftCircle2 = draw.circle(11);
+        var leftCircle2 = svgDraw.circle(11);
         leftCircle2.move(52,58);
-        var leftCircle3 = draw.circle(5);
+        var leftCircle3 = svgDraw.circle(5);
         leftCircle3.move(50,58);
-        this._leftEdge = draw.line(62,50,62,70).stroke({color: 'black' ,width: 2})
+        this._leftEdge = svgDraw.line(62,50,62,70).stroke({color: 'black' ,width: 2})
 
-        this._staticParts = draw.group();
+        this._staticParts = svgDraw.group();
         this._staticParts.add(leftCircle1);
         this._staticParts.add(leftCircle2);
         this._staticParts.add(leftCircle3);
         this._staticParts.add(this._leftEdge);
 
-        var rightCircle1 = draw.circle(11);
+        var rightCircle1 = svgDraw.circle(11);
         rightCircle1.move(386,51);
-        var rightCircle2 = draw.circle(11);
+        var rightCircle2 = svgDraw.circle(11);
         rightCircle2.move(386,58);
-        var rightCircle3 = draw.circle(8);
+        var rightCircle3 = svgDraw.circle(8);
         rightCircle3.move(393,56);
-        this._rightEdge = draw.line(387,50,387,70).stroke({color: 'black' ,width: 2})
+        this._rightEdge = svgDraw.line(387,50,387,70).stroke({color: 'black' ,width: 2})
 
-        this._movingParts = draw.group();
+        this._movingParts = svgDraw.group();
         this._movingParts.add(rightCircle1);
         this._movingParts.add(rightCircle2);
         this._movingParts.add(rightCircle3);
@@ -701,11 +719,11 @@ class ProgressBar
 
         this._fullBarValue = this._rightEdge.x() - this._leftEdge.x(); 
         this._barFillNum = this._barPerc*0.01*this._fullBarValue;
-        this._barFilling = draw.rect(this._barFillNum,16);
+        this._barFilling = svgDraw.rect(this._barFillNum,16);
         this._barFilling.fill('pink');
         this._barFilling.move(63,52);
 
-        this._group = draw.group();
+        this._group = svgDraw.group();
         this._group.add(this._barFilling);
         this._group.add(this._bar);
 
@@ -804,18 +822,18 @@ class ToggleSwitch
 {
     constructor(startState)
     {
-        this._switchArea = draw.rect(60, 40); 
+        this._switchArea = svgDraw.rect(60, 40); 
         this._switchArea.radius(20)
         this._switchArea.move(50,50); 
         this._switchArea.fill('gray');
         this._switchArea.stroke({color: 'black', width: 4});
 
-        this._switch = draw.circle(34);
+        this._switch = svgDraw.circle(34);
         this._switch.move(53,53)
         this._switch.fill('white');
         this._switch.stroke({color: '#ccd1d9', width: 2});
         
-        this._group = draw.group();
+        this._group = svgDraw.group();
 
         this._group.add(this._switchArea);
         this._group.add(this._switch);
