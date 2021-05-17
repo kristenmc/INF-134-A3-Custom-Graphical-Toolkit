@@ -17,15 +17,17 @@ btn.onClick(function(e){
 btn.onStateChange(function(e){
 	//console.log(e);
 });
-btn.setText("Hellooooooo");
+btn.setText("OOOOOOOOO");
 
 var checkboxes = new CheckBoxes(3);
 checkboxes.onClick(function(e){
 	//console.log(e);
 });
 checkboxes.onStateChange(function(e){
-	//console.log(e);
+	console.log(e);
 });
+checkboxes.setText(0, "Hi");
+checkboxes.move(300,100)
 
 var radiobuttons = new RadioButtons(5);
 radiobuttons.onClick(function(e){
@@ -34,14 +36,26 @@ radiobuttons.onClick(function(e){
 
 radiobuttons.setText(3, "Hello!");
 radiobuttons.setText(1, "Oh No!");
+radiobuttons.move(500, 100);
 
 var textbox = new TextBox();
+textbox.move(50,5)
+textbox.onType(function(e){
+	console.log(e);
+});
+textbox.onStateChange(function(e){
+	console.log(e);
+});
 
 var scrollbar = new ScrollBar(300);
 
-var progressbar = new ProgressBar(500, 50);
-progressbar.setValue(50);
-progressbar.setWidth(300);
+var progressbar = new ProgressBar(500, 100);
+progressbar.setValue(0);
+progressbar.setWidth(150);
+progressbar.move(200,100);
+progressbar.setValue(35);
+progressbar.increment(100);
+
 
 var toggleswitch = new ToggleSwitch(false);
 toggleswitch.move(300, 100);

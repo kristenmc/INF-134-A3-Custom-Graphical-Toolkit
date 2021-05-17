@@ -74,9 +74,8 @@ return {Button}
 
 class SingleCheckBox
 {
-    constructor(buttonNum)
+    constructor(buttonNum, draw)
     {
-        var draw = SVG().addTo('body').size('60%','36');
         this.group = draw.group();
 
         this.rect = draw.rect(25,25).fill('white')
@@ -86,14 +85,24 @@ class SingleCheckBox
         this.checkmark.fill('transparent');
         this.checkmark.stroke({color: 'transparent', width: 2, linecap: 'round', linejoin: 'round'});
 
+        this.text = draw.text("Test " + buttonNum);
+        this.text.move(35,3);
+        this.text.font({family: 'Trebuchet MS'});
+
         this.group.add(this.rect);
         this.group.add(this.checkmark);
-        this.group.move(5,5);
+        this.group.add(this.text)
 
         this.buttonNum = buttonNum;
         this.clickEvent = null;
         this.stateChangeEvent = null;
         this.checked = false;
+
+
+        this.rect.y((buttonNum+1)*35);
+        this.checkmark.y((buttonNum+1)*35 + 5);
+        this.text.y((buttonNum+1)*36);
+
         
         this.clickBox(this);
         this.otherStateChanges(this);
@@ -136,7 +145,16 @@ class SingleCheckBox
 
     move(x, y)
     {
-        this.group.move(x, y);
+        this.rect.move(x,(this.buttonNum+1)*35+y);
+        this.checkmark.move(x + 7, ((this.buttonNum+1)*35 + 6) + y);
+        this.text.move(x + 35, ((this.buttonNum+1)*36) + y)
+    }
+
+    setText(newText)
+    {
+        this.text.text(newText);
+        if (self.stateChangeEvent != null)
+            self.stateChangeEvent("Button " + this.buttonNum + " Text Change: " + newText);
     }
 
     onClick(eventHandler)
@@ -154,18 +172,24 @@ class CheckBoxes
 {
     constructor(numButtons)
     {
-        this.draw = SVG().addTo('body').size('0','0');
+        this.draw = SVG().addTo('body').size('100%','100%');
         this.checkboxList = [];
         this.clickEvent = null;
 
         for(var i = 0; i < numButtons; i++)
-            this.checkboxList.push(new SingleCheckBox(i));
+            this.checkboxList.push(new SingleCheckBox(i, this.draw));
     }
 
     move(x, y)
     {
-        for(var i = 0; i > this.checkboxList.length; i++)
+        for(var i = 0; i < this.checkboxList.length; i++)
             this.checkboxList[i].move(x,y);
+    }
+
+    setText(buttonNum, newText)
+    {
+        if (buttonNum >= 0 & buttonNum < this.checkboxList.length)
+            this.checkboxList[buttonNum].setText(newText);
     }
 
     onClick(eventHandler)
@@ -194,10 +218,9 @@ class CheckBoxes
 
 class SingleRadioButton
 {
-    constructor(buttonNum)
+    constructor(buttonNum, draw)
     {
         this.buttonNum = buttonNum;
-        var draw = SVG().addTo('body').size('100%','36');
         this.group = draw.group();
         this.circle = draw.circle(25).fill('white');
         this.circle.stroke({color: 'black', width: 4});
@@ -216,6 +239,10 @@ class SingleRadioButton
         this.isChecked = false;
         this.previouslyChecked = false;
         this.clickEvent = null
+        
+        this.circle.y((buttonNum+1)*35);
+        this.filling.y((buttonNum+1)*35 + 5);
+        this.text.y((buttonNum+1)*36);
 
         self = this;
 
@@ -224,7 +251,9 @@ class SingleRadioButton
 
     move(x, y)
     {
-        this.group.move(x, y);
+        this.circle.move(x,(this.buttonNum+1)*35+y);
+        this.filling.move(x + 5, ((this.buttonNum+1)*35 + 5) + y);
+        this.text.move(x + 35, ((this.buttonNum+1)*36) + y)
     }
 
     onClick(eventHandler)
@@ -276,17 +305,17 @@ class SingleRadioButton
 }
 
 
-class RadioButtons  //FIRE CUSTOM EVEN FROM SINGLE RADIO BUTTON TO TELL OTHER BUTTONS TO TURN PURPLE AGAIN
+class RadioButtons  
 {
     constructor(numButtons)
     {
-        var draw = SVG().addTo('body').size('0','0');
+        var draw = SVG().addTo('body').size('100%','100%');
         this.radioList = [];
         self = this;
 
         for(var i = 0; i < numButtons; i++)
         {
-            var newButton = new SingleRadioButton(i);
+            var newButton = new SingleRadioButton(i, draw);
             this.radioList.push(newButton);
             newButton.move(5,5);
         }
@@ -299,8 +328,8 @@ class RadioButtons  //FIRE CUSTOM EVEN FROM SINGLE RADIO BUTTON TO TELL OTHER BU
 
     move(x, y)
     {
-        for(var i = 0; i > this.radioList.length; i++)
-            this.radioList[i].move(x,y);
+        for(var i = 0; i < this.radioList.length; i++)
+            this.radioList[i].move(x,y);  
     }
 
     checkColorChange(index, listLength, radioList)
@@ -368,7 +397,7 @@ class TextBox
 {
     constructor()
     {
-        var draw = SVG().addTo('body').size('100%','20%');
+        var draw = SVG().addTo('body').size('100%','100%');
         this.group = draw.group();
         this. polyline = draw.polyline('50,75, 50,50 50,75 400,75 400,50, 50,50') //400s are rectangle width. Change to make longer or shorter
         this.polyline.fill('white').move(20, 20)
@@ -383,24 +412,52 @@ class TextBox
         this.group.add(this.text);
         this.group.add(this.endBox);
         this.canType = false;
-        this.maxTextLength = 44;
-        this.clickEvent = null
+
+        this.typeEvent = null;
+        this.stateChangeEvent = null;
         self = this;
 
         this.enableTyping(self, draw);
         this.readUserInput(self);
     }
 
+    move(x,y)
+    {
+        this.group.move(x,y)
+    }
+
+    getText()
+    {
+        return this.textContents;
+    }
+
+    onType(eventHandler)
+    {
+        this.typeEvent = eventHandler
+    }
+
+    onStateChange(eventHandler)
+    {
+        this.stateChangeEvent = eventHandler
+    }
+
+
     enableTyping(self, draw)
     {
-        self.group.mouseover(function(){
+        self.group.mouseover(function(event){
             self.text.text(self.textContents + '|');
             self.canType = true;
+            
+            if(self.stateChangeEventt != null)
+                self.stateChangeEvent(event)
         })
 
-        self.group.mouseout(function(){
+        self.group.mouseout(function(event){
             self.text.text(self.textContents);
             self.canType = false;
+
+            if(self.stateChangeEvent != null)
+                self.stateChangeEvent(event)
         })
 
         self.text.mouseout(function(){
@@ -412,9 +469,12 @@ class TextBox
             self.text.text(self.textContents);
             self.canType = false;
         })
-        draw.mouseout(function(){
+        draw.mouseout(function(event){
             self.text.text(self.textContents);
             self.canType = false;
+
+            if(self.stateChangeEvent != null)
+                self.stateChangeEvent(event)
         })
     }
 
@@ -424,15 +484,28 @@ class TextBox
             if(self.canType)
             {
                 if (event.key == "Backspace")
+                {
                     self.textContents = self.textContents.slice(0, self.textContents.length-1)
 
+                    if(self.typeEvent != null)
+                        self.typeEvent(event)
+                    
+                    if(self.stateChangeEvent != null)
+                        self.stateChangeEvent(event)
+                }    
                 else if(self.checkEndOfTextBox())
                 {
-                   console.log(event);
                    if (!(event.key.length > 1))
-                        self.textContents = self.textContents+ event.key;       
-                }
+                   {
+                        self.textContents = self.textContents+ event.key;
 
+                        if(self.typeEvent != null)
+                            self.typeEvent(event)
+                
+                        if(self.stateChangeEvent != null)
+                            self.stateChangeEvent(event)
+                   }           
+                }
                 else
                     console.log("texbox full.");
                 
@@ -615,6 +688,12 @@ class ProgressBar
         leftCircle3.move(50,58);
         this.leftEdge = draw.line(62,50,62,70).stroke({color: 'black' ,width: 2})
 
+        this.staticParts = draw.group();
+        this.staticParts.add(leftCircle1);
+        this.staticParts.add(leftCircle2);
+        this.staticParts.add(leftCircle3);
+        this.staticParts.add(this.leftEdge);
+
         var rightCircle1 = draw.circle(11);
         rightCircle1.move(386,51);
         var rightCircle2 = draw.circle(11);
@@ -637,6 +716,13 @@ class ProgressBar
         this.barFilling = draw.rect(this.barFillNum,16);
         this.barFilling.fill('pink');
         this.barFilling.move(63,52);
+
+        this.group = draw.group();
+        this.group.add(this.barFilling);
+        this.group.add(this.bar);
+
+        this.incrementEvent = null
+        this.stateChangeEvent = null
     }
 
     setValue(newValue)
@@ -657,11 +743,14 @@ class ProgressBar
             this.barPerc = newValue;
             this.barFillNum = this.barPerc*0.01*this.fullBarValue;
         }
-            
-
         this.barFilling.width(this.barFillNum);
+
+        if (this.incrementEvent != null)
+            this.incrementEvent("New Percentage: " + this.barPerc);
+        if (this.stateChangeEvent != null)
+            this.stateChangeEvent("New Percentage: " + this.barPerc);
     }
-    setWidth(newWidth)
+    setWidth(newWidth) 
     {
         if (newWidth < 30)
             this.barWidth = 30;
@@ -670,16 +759,58 @@ class ProgressBar
 
         this.bar.width(newWidth);
 
-        var rightFilling = this.bar.width()+37;
-        this.movingParts.x(rightFilling);
+        this.movingParts.x(this.bar.width()+37);
 
         this.fullBarValue = this.rightEdge.x() - this.leftEdge.x(); 
 
         this.barFilling.width(this.barPerc*0.01*this.fullBarValue);
+
+        if (this.stateChangeEvent != null)
+            this.stateChangeEvent("New Width: " + this.barWidth);
     }
+    increment(inc)
+    {
+        if (this.barPerc + inc > 100)
+            this.barPerc = 100
+        else if (this.barPerc + inc < 0)
+            this.barPerc = 0
+        else
+            this.barPerc += inc
+
+        this.barFillNum = this.barPerc*0.01*this.fullBarValue;
+        this.barFilling.width(this.barFillNum);
+        
+
+        if (this.incrementEvent != null)
+            this.incrementEvent("New Percentage: " + this.barPerc);
+        if (this.stateChangeEvent != null)
+            this.stateChangeEvent("New Percentage: " + this.barPerc);
+    }
+
+
     getValue()
     {
         return this.barPerc;
+    }
+
+
+
+    move(x,y) 
+    {
+        this.bar.move(x,y);
+        this.barFilling.move(x+13,y+2);
+        this.staticParts.move(x,y);
+        this.movingParts.move(x+ this.barWidth-15,y)  
+    }
+
+    onIncrememnt(eventHandler)
+    {
+        this.incrementEvent = eventHandler;
+    }
+
+    onStateChange(eventHandler)
+    {
+        this.stateChangeEvent = eventHandler;
     }
 }
 
@@ -706,6 +837,8 @@ class ToggleSwitch
         this.group.add(this.switchArea);
         this.group.add(this.switch);
 
+
+
         this.offX = 53;
         this.onX = 73;
 
@@ -718,9 +851,6 @@ class ToggleSwitch
             this.switch.move(this.onX, this.switch.y());
             this.switchArea.fill('#60e356');
         }
-
-
-
         this.flipSwitch();
     }
 
