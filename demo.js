@@ -24,19 +24,22 @@ checkboxes.onClick(function(e){
 	//console.log(e);
 });
 checkboxes.onStateChange(function(e){
-	console.log(e);
+	//console.log(e);
 });
 checkboxes.setText(0, "Hi");
 checkboxes.move(300,100)
 
 var radiobuttons = new RadioButtons(5);
 radiobuttons.onClick(function(e){
-	console.log(e);
+	//console.log(e);
+});
+radiobuttons.onStateChange(function(e){
+	//console.log(e);
 });
 
 radiobuttons.setText(3, "Hello!");
 radiobuttons.setText(1, "Oh No!");
-radiobuttons.move(500, 100);
+radiobuttons.move(0, -500);
 
 var textbox = new TextBox();
 textbox.move(50,5)
@@ -44,12 +47,22 @@ textbox.onType(function(e){
 	console.log(e);
 });
 textbox.onStateChange(function(e){
-	console.log(e);
+	//console.log(e);
 });
 
 var scrollbar = new ScrollBar(300);
 
+
+
+
 var progressbar = new ProgressBar(500, 100);
+progressbar.onIncrement(function(e){
+	//console.log(e);
+});
+progressbar.onStateChange(function(e){
+	//console.log(e);
+});
+
 progressbar.setValue(0);
 progressbar.setWidth(150);
 progressbar.move(200,100);
@@ -59,6 +72,14 @@ progressbar.increment(100);
 
 var toggleswitch = new ToggleSwitch(false);
 toggleswitch.move(300, 100);
+toggleswitch.onClick(function(e){
+	//console.log(e);
+});
+toggleswitch.onStateChange(function(e){
+	//console.log(e);
+});
+
+
 
 
 

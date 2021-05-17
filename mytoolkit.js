@@ -5,6 +5,7 @@ import {SVG} from './svg.min.js';
 var MyToolkit = (function() {
     var Button = function(){
         var draw = SVG().addTo('body').size('50%','50%');
+        draw.attr({'overflow': 'visible'})
         var idleGradient = draw.gradient('linear', function(add) {
             add.stop(0, 'orange')
             add.stop(0.5, 'pink')
@@ -97,6 +98,7 @@ class SingleCheckBox
         this.clickEvent = null;
         this.stateChangeEvent = null;
         this.checked = false;
+        this.previouslyChecked = false;
 
 
         this.rect.y((buttonNum+1)*35);
@@ -172,12 +174,12 @@ class CheckBoxes
 {
     constructor(numButtons)
     {
-        this.draw = SVG().addTo('body').size('100%','100%');
+        var draw = SVG().addTo('body').size('100%','100%');
+        draw.attr({'overflow': 'visible'})
         this.checkboxList = [];
-        this.clickEvent = null;
 
         for(var i = 0; i < numButtons; i++)
-            this.checkboxList.push(new SingleCheckBox(i, this.draw));
+            this.checkboxList.push(new SingleCheckBox(i, draw));
     }
 
     move(x, y)
@@ -205,13 +207,8 @@ class CheckBoxes
 
     onStateChange(eventHandler)
     {
-        var self = this;
         for(var i = 0; i < this.checkboxList.length; i++)
-        {
-            this.checkboxList[i].group.on('checkboxClicked', function(event){
-                self.checkboxList[event.detail].stateChangeEvent = eventHandler;
-            })
-        }
+            this.checkboxList[i].stateChangeEvent = eventHandler;
     }
 }
 
@@ -247,6 +244,8 @@ class SingleRadioButton
         self = this;
 
         this.colorChange(buttonNum);
+
+        this.otherStateChanges(this)
     }
 
     move(x, y)
@@ -310,6 +309,7 @@ class RadioButtons
     constructor(numButtons)
     {
         var draw = SVG().addTo('body').size('100%','100%');
+        draw.attr({'overflow': 'visible'})
         this.radioList = [];
         self = this;
 
@@ -372,24 +372,12 @@ class RadioButtons
             })
         }
     }
-/*
+
     onStateChange(eventHandler)
     {
-        var self = this;
         for(var i = 0; i < this.radioList.length; i++)
-        {
-            this.radioList[i].group.on('buttonChecked', function(data){
-                self.radioList[data.detail.buttonNum].clickEvent = eventHandler;
-                if (!self.radioList[data.detail.buttonNum].previouslyChecked)
-                {
-                    self.radioList[data.detail.buttonNum].clickEvent("Button: " + data.detail.buttonNum);
-                    self.radioList[data.detail.buttonNum].clickEvent(data.detail.Event);
-                    self.radioList[data.detail.buttonNum].previouslyChecked = true;
-                }
-            })
-        }
+            this.radioList[i].stateChangeEvent = eventHandler;
     }
-*/
 }
 
 
@@ -398,6 +386,7 @@ class TextBox
     constructor()
     {
         var draw = SVG().addTo('body').size('100%','100%');
+        draw.attr({'overflow': 'visible'})
         this.group = draw.group();
         this. polyline = draw.polyline('50,75, 50,50 50,75 400,75 400,50, 50,50') //400s are rectangle width. Change to make longer or shorter
         this.polyline.fill('white').move(20, 20)
@@ -534,6 +523,7 @@ class ScrollBar
             this.barLength = length;
 
         var draw = SVG().addTo('body').size('100%','75%');
+        draw.attr({'overflow': 'visible'})
         this.upButton = draw.polyline('50,50 50,75 75,75 75,50 50,50');
         this.upButton.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' });
         this.upButton.fill('white');
@@ -662,23 +652,24 @@ class ProgressBar
     constructor(barWidth, barPercentage)
     {
         if (barWidth < 30)
-            this.barWidth = 30;
+            this._barWidth = 30;
         else
-            this.barWidth = barWidth;
+            this._barWidth = barWidth;
 
         if (barPercentage < 0)
-            this.barPerc = 0
+            this._barPerc = 0
         else if (barPercentage > 100)
-            this.barPerc = 100;
+            this._barPerc = 100;
         else
-            this.barPerc = barPercentage
+            this._barPerc = barPercentage
 
         var draw = SVG().addTo('body').size('100%','100%');
-        this.bar = draw.rect(this.barWidth, 20)
-        this.bar.move(50,50);
-        this.bar.radius(15)
-        this.bar.stroke({color: 'black', width: 4});
-        this.bar.fill('transparent');
+        draw.attr({'overflow': 'visible'})
+        this._bar = draw.rect(this._barWidth, 20)
+        this._bar.move(50,50);
+        this._bar.radius(15)
+        this._bar.stroke({color: 'black', width: 4});
+        this._bar.fill('transparent');
 
         var leftCircle1 = draw.circle(11);
         leftCircle1.move(52,51);
@@ -686,13 +677,13 @@ class ProgressBar
         leftCircle2.move(52,58);
         var leftCircle3 = draw.circle(5);
         leftCircle3.move(50,58);
-        this.leftEdge = draw.line(62,50,62,70).stroke({color: 'black' ,width: 2})
+        this._leftEdge = draw.line(62,50,62,70).stroke({color: 'black' ,width: 2})
 
-        this.staticParts = draw.group();
-        this.staticParts.add(leftCircle1);
-        this.staticParts.add(leftCircle2);
-        this.staticParts.add(leftCircle3);
-        this.staticParts.add(this.leftEdge);
+        this._staticParts = draw.group();
+        this._staticParts.add(leftCircle1);
+        this._staticParts.add(leftCircle2);
+        this._staticParts.add(leftCircle3);
+        this._staticParts.add(this._leftEdge);
 
         var rightCircle1 = draw.circle(11);
         rightCircle1.move(386,51);
@@ -700,198 +691,223 @@ class ProgressBar
         rightCircle2.move(386,58);
         var rightCircle3 = draw.circle(8);
         rightCircle3.move(393,56);
-        this.rightEdge = draw.line(387,50,387,70).stroke({color: 'black' ,width: 2})
+        this._rightEdge = draw.line(387,50,387,70).stroke({color: 'black' ,width: 2})
 
-        this.movingParts = draw.group();
-        this.movingParts.add(rightCircle1);
-        this.movingParts.add(rightCircle2);
-        this.movingParts.add(rightCircle3);
-        this.movingParts.add(this.rightEdge);
+        this._movingParts = draw.group();
+        this._movingParts.add(rightCircle1);
+        this._movingParts.add(rightCircle2);
+        this._movingParts.add(rightCircle3);
+        this._movingParts.add(this._rightEdge);
 
-        var rightFilling = this.bar.width()+37;
-        this.movingParts.x(rightFilling);
+        var rightFilling = this._bar.width()+37;
+        this._movingParts.x(rightFilling);
 
-        this.fullBarValue = this.rightEdge.x() - this.leftEdge.x(); 
-        this.barFillNum = this.barPerc*0.01*this.fullBarValue;
-        this.barFilling = draw.rect(this.barFillNum,16);
-        this.barFilling.fill('pink');
-        this.barFilling.move(63,52);
+        this._fullBarValue = this._rightEdge.x() - this._leftEdge.x(); 
+        this._barFillNum = this._barPerc*0.01*this._fullBarValue;
+        this._barFilling = draw.rect(this._barFillNum,16);
+        this._barFilling.fill('pink');
+        this._barFilling.move(63,52);
 
-        this.group = draw.group();
-        this.group.add(this.barFilling);
-        this.group.add(this.bar);
+        this._group = draw.group();
+        this._group.add(this._barFilling);
+        this._group.add(this._bar);
 
-        this.incrementEvent = null
-        this.stateChangeEvent = null
+        this._incrementEvent = null
+        this._stateChangeEvent = null
     }
 
     setValue(newValue)
     {
         if (newValue < 0)
         {
-            this.barFillNum = 0;
-            this.barPerc = 0;
+            this._barFillNum = 0;
+            this._barPerc = 0;
         }
             
         else if (newValue > 100)
         {
-            this.barFillNum = this.fullBarValue;
-            this.barPerc = 100;
+            this._barFillNum = this._fullBarValue;
+            this._barPerc = 100;
         } 
         else
         {
-            this.barPerc = newValue;
-            this.barFillNum = this.barPerc*0.01*this.fullBarValue;
+            this._barPerc = newValue;
+            this._barFillNum = this._barPerc*0.01*this._fullBarValue;
         }
-        this.barFilling.width(this.barFillNum);
+        this._barFilling.width(this._barFillNum);
 
-        if (this.incrementEvent != null)
-            this.incrementEvent("New Percentage: " + this.barPerc);
-        if (this.stateChangeEvent != null)
-            this.stateChangeEvent("New Percentage: " + this.barPerc);
+        if (this._incrementEvent != null)
+            this._incrementEvent("New Bar Percentage: " + this._barPerc);
+        if (this._stateChangeEvent != null)
+            this._stateChangeEvent("New Bar Percentage: " + this._barPerc);
     }
     setWidth(newWidth) 
     {
         if (newWidth < 30)
-            this.barWidth = 30;
+            this._barWidth = 30;
         else
-            this.barWidth = newWidth;
+            this._barWidth = newWidth;
 
-        this.bar.width(newWidth);
+        this._bar.width(newWidth);
 
-        this.movingParts.x(this.bar.width()+37);
+        this._movingParts.x(this._bar.width()+37);
 
-        this.fullBarValue = this.rightEdge.x() - this.leftEdge.x(); 
+        this._fullBarValue = this._rightEdge.x() - this._leftEdge.x(); 
 
-        this.barFilling.width(this.barPerc*0.01*this.fullBarValue);
+        this._barFilling.width(this._barPerc*0.01*this._fullBarValue);
 
-        if (this.stateChangeEvent != null)
-            this.stateChangeEvent("New Width: " + this.barWidth);
+        if (this._stateChangeEvent != null)
+            this._stateChangeEvent("New Bar Width: " + this._barWidth);
     }
     increment(inc)
     {
-        if (this.barPerc + inc > 100)
-            this.barPerc = 100
-        else if (this.barPerc + inc < 0)
-            this.barPerc = 0
+        if (this._barPerc + inc > 100)
+            this._barPerc = 100
+        else if (this._barPerc + inc < 0)
+            this._barPerc = 0
         else
-            this.barPerc += inc
+            this._barPerc += inc
 
-        this.barFillNum = this.barPerc*0.01*this.fullBarValue;
-        this.barFilling.width(this.barFillNum);
+        this._barFillNum = this._barPerc*0.01*this._fullBarValue;
+        this._barFilling.width(this._barFillNum);
         
 
-        if (this.incrementEvent != null)
-            this.incrementEvent("New Percentage: " + this.barPerc);
-        if (this.stateChangeEvent != null)
-            this.stateChangeEvent("New Percentage: " + this.barPerc);
+        if (this._incrementEvent != null)
+            this._incrementEvent("New Bar Percentage: " + this._barPerc);
+        if (this._stateChangeEvent != null)
+            this._stateChangeEvent("New Bar Percentage: " + this._barPerc);
     }
 
 
     getValue()
     {
-        return this.barPerc;
+        return this._barPerc;
     }
-
-
 
     move(x,y) 
     {
-        this.bar.move(x,y);
-        this.barFilling.move(x+13,y+2);
-        this.staticParts.move(x,y);
-        this.movingParts.move(x+ this.barWidth-15,y)  
+        this._bar.move(x,y);
+        this._barFilling.move(x+13,y+2);
+        this._staticParts.move(x,y);
+        this._movingParts.move(x+ this._barWidth-15,y)  
     }
 
-    onIncrememnt(eventHandler)
+    onIncrement(eventHandler)
     {
-        this.incrementEvent = eventHandler;
+        this._incrementEvent = eventHandler;
     }
 
     onStateChange(eventHandler)
     {
-        this.stateChangeEvent = eventHandler;
+        this._stateChangeEvent = eventHandler;
     }
 }
-
-
 
 class ToggleSwitch
 {
     constructor(startState)
     {
         var draw = SVG().addTo('body').size('100%','100%');
-        this.switchArea = draw.rect(60, 40); 
-        this.switchArea.radius(20)
-        this.switchArea.move(50,50); 
-        this.switchArea.fill('gray');
-        this.switchArea.stroke({color: 'black', width: 4});
+        draw.attr({'overflow': 'visible'})
+        this._switchArea = draw.rect(60, 40); 
+        this._switchArea.radius(20)
+        this._switchArea.move(50,50); 
+        this._switchArea.fill('gray');
+        this._switchArea.stroke({color: 'black', width: 4});
 
-        this.switch = draw.circle(34);
-        this.switch.move(53,53)
-        this.switch.fill('white');
-        this.switch.stroke({color: '#ccd1d9', width: 2});
+        this._switch = draw.circle(34);
+        this._switch.move(53,53)
+        this._switch.fill('white');
+        this._switch.stroke({color: '#ccd1d9', width: 2});
         
-        this.group = draw.group();
+        this._group = draw.group();
 
-        this.group.add(this.switchArea);
-        this.group.add(this.switch);
+        this._group.add(this._switchArea);
+        this._group.add(this._switch);
 
+        this._offX = 53;
+        this._onX = 73;
 
-
-        this.offX = 53;
-        this.onX = 73;
-
-        this.isOn = false;
-        self = this;
+        this._isOn = false;
+        this._clickEvent = null;
+        this._onChangeEvent = null;
 
         if (startState)
         {
-            this.isOn = true;
-            this.switch.move(this.onX, this.switch.y());
-            this.switchArea.fill('#60e356');
+            this._isOn = true;
+            this._switch.move(this._onX, this._switch.y());
+            this._switchArea.fill('#60e356');
         }
-        this.flipSwitch();
-    }
-
-    flipSwitch()
-    {
-        this.group.mousedown(function(event){
-            if (!self.isOn)
-                self.switchOn();    
-            else
-                self.switchOff();    
-        })
-                
-    }
-
-    switchOff()
-    {
-        this.isOn = false;
-        this.switch.animate({duration: 100}).move(this.offX, this.switch.y());
-        this.switchArea.fill('gray');
-    }
-
-    switchOn()
-    {
-        this.isOn = true;
-        this.switch.animate({duration: 100}).move(this.onX, this.switch.y());
-        this.switchArea.fill('#60e356');
+        this._flipSwitch();
+        this._otherStateChanges(this);
     }
 
     move(x,y)
     {
-        this.group.move(x,y);
-        this.onX = x+23;
-        this.offX = x+3;
+        this._group.move(x,y);
+        this._onX = x+23;
+        this._offX = x+3;
     }
 
     isEnabled()
     {
-        return this.isOn;
+        return this._isOn;
+    }
+
+    onClick(eventHandler)
+    {
+        this._clickEvent = eventHandler;
+    }
+
+    onStateChange(eventHandler)
+    {
+        this._stateChangeEvent = eventHandler;
     }
 
 
+    _flipSwitch()
+    {
+        var self = this;
+        this._group.click(function(event){
+            if (!self._isOn)
+                self._switchOn();    
+            else
+                self._switchOff();   
+            
+            if (self._clickEvent != null)
+                self._clickEvent(event);
+
+            if (self._stateChangeEvent != null)
+                self._stateChangeEvent(event);
+        })
+                
+    }
+
+    _switchOff()
+    {
+        this._isOn = false;
+        this._switch.animate({duration: 100}).move(this._offX, this._switch.y());
+        this._switchArea.fill('gray');
+    }
+
+    _switchOn()
+    {
+        this._isOn = true;
+        this._switch.animate({duration: 100}).move(this._onX, this._switch.y());
+        this._switchArea.fill('#60e356');
+    }
+
+    _otherStateChanges(self)
+    {
+        this._group.mouseover(function(event){
+            if (self._stateChangeEvent != null)
+                self._stateChangeEvent(event);
+        })
+        this._group.mouseout(function(event){
+            if (self._stateChangeEvent != null)
+                self._stateChangeEvent(event);
+        })
+    }
 }
 
 export{MyToolkit}
