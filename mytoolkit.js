@@ -4,7 +4,7 @@ import {SVG} from './svg.min.js';
 
 var MyToolkit = (function() {
     var Button = function(){
-        var draw = SVG().addTo('body').size('50%','50%');
+        var draw = SVG().addTo('body').size('8%','10%');
         draw.attr({'overflow': 'visible'})
         var idleGradient = draw.gradient('linear', function(add) {
             add.stop(0, 'orange')
@@ -174,7 +174,7 @@ class CheckBoxes
 {
     constructor(numButtons)
     {
-        var draw = SVG().addTo('body').size('100%','100%');
+        var draw = SVG().addTo('body').size('100%','50%');
         draw.attr({'overflow': 'visible'})
         this.checkboxList = [];
 
@@ -308,7 +308,7 @@ class RadioButtons
 {
     constructor(numButtons)
     {
-        var draw = SVG().addTo('body').size('100%','100%');
+        var draw = SVG().addTo('body').size('100%','50%');
         draw.attr({'overflow': 'visible'})
         this.radioList = [];
         self = this;
@@ -385,7 +385,7 @@ class TextBox
 {
     constructor()
     {
-        var draw = SVG().addTo('body').size('100%','100%');
+        var draw = SVG().addTo('body').size('30%','15%');
         draw.attr({'overflow': 'visible'})
         this.group = draw.group();
         this. polyline = draw.polyline('50,75, 50,50 50,75 400,75 400,50, 50,50') //400s are rectangle width. Change to make longer or shorter
@@ -522,28 +522,28 @@ class ScrollBar
         else
             this.barLength = length;
 
-        var draw = SVG().addTo('body').size('100%','75%');
+        var draw = SVG().addTo('body').size('2%',this.barLength);
         draw.attr({'overflow': 'visible'})
-        this.upButton = draw.polyline('50,50 50,75 75,75 75,50 50,50');
+        this.upButton = draw.polyline('0,0 0,25 25,25 25,0 0,0');
         this.upButton.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' });
         this.upButton.fill('white');
 
-        this.scrollArea = draw.polyline([[50,75], [50,this.barLength], [75,this.barLength], [75,75], [50,75]]);
+        this.scrollArea = draw.polyline([[0,25], [0,this.barLength], [25,this.barLength], [25,25], [0,25]]);
         this.scrollArea.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' });
         this.scrollArea.fill('gray');
        
-        this.downButton = draw.polyline([[50,this.barLength], [50,this.barLength+25], [75,this.barLength+25], [75,this.barLength]]);
+        this.downButton = draw.polyline([[0,this.barLength], [0,this.barLength+25], [25,this.barLength+25], [25,this.barLength]]);
         this.downButton.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' });
         this.downButton.fill('white');
 
-        this.scroller = draw.polyline('54,78 54,96 71,96 71,78 54,78');
+        this.scroller = draw.polyline('4,28 4,46 21,46 21,28 4,28');
         this.scroller.stroke({ color: '#f23f8d', width: 4, linecap: 'round', linejoin: 'round' });
         this.scroller.fill('black');
 
-        this.scrollBorderUpper = draw.line(50,78,75,78);
+        this.scrollBorderUpper = draw.line(0,28,25,28);
         this.scrollBorderUpper.stroke({ color: '#34b7eb', width: 4, linecap: 'round'});
 
-        this.scrollBorderLower = draw.line(50,this.barLength-5, 75,this.barLength-5);
+        this.scrollBorderLower = draw.line(0,this.barLength-5, 25,this.barLength-5);
         this.scrollBorderLower.stroke({ color: '#34b7eb', width: 4, linecap: 'round'});
 
         this.isHeld = false;
@@ -574,23 +574,24 @@ class ScrollBar
         window.addEventListener('mousemove', function(event){
             if (self.isHeld)
             {
+                console.log(event)  
                 console.log("event: " + event.clientY)    
                 console.log("scroller: " + scroll.y())
 
                 if (self.atUpperBorder())
                 {
                     console.log("At Top")
-                    if(event.clientY > scroll.y())
-                        scroll.y(event.clientY);     
+                    if(event.clientY > self.scrollBorderUpper.y())
+                        scroll.dy(event.clientY-200);     
                 }
                 else if (self.atLowerBorder())
                 {
                     console.log("At Bottom")
-                    if(event.clientY < scroll.y())
-                        scroll.y(event.clientY); 
+                    if(event.clientY < self.scrollBorderLower.y())
+                        scroll.dy(event.clientY-200); 
                 }
                 else
-                    scroll.y(event.clientY);
+                    scroll.dy(event.clientY-200);
             }     
         })
     }
