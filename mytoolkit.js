@@ -2,10 +2,11 @@
 
 import {SVG} from './svg.min.js';
 
+var draw = SVG().addTo('body').size('10000','10000'); 
+draw.attr({'overflow': 'visible'})
+
 var MyToolkit = (function() {
     var Button = function(){
-        var draw = SVG().addTo('body').size('8%','10%');
-        draw.attr({'overflow': 'visible'})
         var idleGradient = draw.gradient('linear', function(add) {
             add.stop(0, 'orange')
             add.stop(0.5, 'pink')
@@ -75,7 +76,7 @@ return {Button}
 
 class SingleCheckBox
 {
-    constructor(buttonNum, draw)
+    constructor(buttonNum)
     {
         this.group = draw.group();
 
@@ -174,8 +175,6 @@ class CheckBoxes
 {
     constructor(numButtons)
     {
-        var draw = SVG().addTo('body').size('100%','50%');
-        draw.attr({'overflow': 'visible'})
         this.checkboxList = [];
 
         for(var i = 0; i < numButtons; i++)
@@ -215,7 +214,7 @@ class CheckBoxes
 
 class SingleRadioButton
 {
-    constructor(buttonNum, draw)
+    constructor(buttonNum)
     {
         this.buttonNum = buttonNum;
         this.group = draw.group();
@@ -308,8 +307,6 @@ class RadioButtons
 {
     constructor(numButtons)
     {
-        var draw = SVG().addTo('body').size('100%','50%');
-        draw.attr({'overflow': 'visible'})
         this.radioList = [];
         self = this;
 
@@ -385,8 +382,6 @@ class TextBox
 {
     constructor()
     {
-        var draw = SVG().addTo('body').size('30%','15%');
-        draw.attr({'overflow': 'visible'})
         this.group = draw.group();
         this. polyline = draw.polyline('50,75, 50,50 50,75 400,75 400,50, 50,50') //400s are rectangle width. Change to make longer or shorter
         this.polyline.fill('white').move(20, 20)
@@ -522,8 +517,7 @@ class ScrollBar
         else
             this.barLength = length;
 
-        var draw = SVG().addTo('body').size('2%',this.barLength);
-        draw.attr({'overflow': 'visible'})
+        console.log(draw.attr())
         this.upButton = draw.polyline('0,0 0,25 25,25 25,0 0,0');
         this.upButton.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' });
         this.upButton.fill('white');
@@ -558,6 +552,7 @@ class ScrollBar
     {
         this.scroller.mousedown(function(event){
             self.isHeld = true;
+            console.log(event)
         })
 
         this.scroller.mouseup(function(event){
@@ -578,20 +573,23 @@ class ScrollBar
                 console.log("event: " + event.clientY)    
                 console.log("scroller: " + scroll.y())
 
+                var CTM = event.target.getScreenCTM();
+                var newY = (event.clientY - CTM.f)/CTM.d;
+
                 if (self.atUpperBorder())
                 {
                     console.log("At Top")
-                    if(event.clientY > self.scrollBorderUpper.y())
-                        scroll.dy(event.clientY-200);     
+                    if(newY > scroll.y())
+                        scroll.y(newY);     
                 }
                 else if (self.atLowerBorder())
                 {
                     console.log("At Bottom")
-                    if(event.clientY < self.scrollBorderLower.y())
-                        scroll.dy(event.clientY-200); 
+                    if(newY < scroll.y())
+                        scroll.y(newY); 
                 }
                 else
-                    scroll.dy(event.clientY-200);
+                    scroll.y(newY);
             }     
         })
     }
@@ -664,8 +662,6 @@ class ProgressBar
         else
             this._barPerc = barPercentage
 
-        var draw = SVG().addTo('body').size('100%','100%');
-        draw.attr({'overflow': 'visible'})
         this._bar = draw.rect(this._barWidth, 20)
         this._bar.move(50,50);
         this._bar.radius(15)
@@ -808,8 +804,6 @@ class ToggleSwitch
 {
     constructor(startState)
     {
-        var draw = SVG().addTo('body').size('100%','100%');
-        draw.attr({'overflow': 'visible'})
         this._switchArea = draw.rect(60, 40); 
         this._switchArea.radius(20)
         this._switchArea.move(50,50); 
