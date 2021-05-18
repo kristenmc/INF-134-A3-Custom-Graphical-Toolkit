@@ -139,19 +139,17 @@ class SingleCheckBox
             {
                 self.checkmark.stroke({color: 'black'});
                 self.checked = true;
-                self.clickEvent = event;
             } 
             else
             {
                 self.checkmark.stroke({color: 'transparent'});
                 self.checked = false;
-                self.clickEvent = event;
             }
             this.fire('checkboxClicked', self.buttonNum); 
             if (self.clickEvent != null)
-                self.clickEvent(event);
+                self.clickEvent({Button: self.buttonNum, clickEvent: event});
             if (self.stateChangeEvent != null)
-                self.stateChangeEvent(event);    
+                self.stateChangeEvent({Button: self.buttonNum, clickEvent: event});    
         })
     }
 
@@ -159,11 +157,11 @@ class SingleCheckBox
     {
         this.group.mouseover(function(event){
             if (self.stateChangeEvent != null)
-                self.stateChangeEvent(event);
+                self.stateChangeEvent({Button: self.buttonNum, stateEvent: event});
         })
         this.group.mouseout(function(event){
             if (self.stateChangeEvent != null)
-                self.stateChangeEvent(event);
+                self.stateChangeEvent({Button: self.buttonNum, stateEvent: event});
         })
     }
 
@@ -297,11 +295,11 @@ class SingleRadioButton
     {
         this.group.mouseover(function(event){
             if (self.stateChangeEvent != null)
-                self.stateChangeEvent(event);
+                self.stateChangeEvent({Button: self.buttonNum, stateEvent: event});
         })
         this.group.mouseout(function(event){
             if (self.stateChangeEvent != null)
-                self.stateChangeEvent(event);
+                self.stateChangeEvent({Button: self.buttonNum, stateEvent: event});
         })
     }
 
