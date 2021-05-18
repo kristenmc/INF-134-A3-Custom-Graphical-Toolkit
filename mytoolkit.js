@@ -216,12 +216,14 @@ class SingleCheckBox
         this._group.click(function(event){
             if (!self._checked)
             {
-                self._checkmark.stroke({color: 'black'});
+                self._checkmark.stroke({color: 'white'});
+                self._rect.fill('orange');
                 self._checked = true;
             } 
             else
             {
                 self._checkmark.stroke({color: 'transparent'});
+                self._rect.fill('white');
                 self._checked = false;
             }
             this.fire('checkboxClicked', self._buttonNum); 
@@ -579,7 +581,7 @@ class TextBox
     }
 
     /**
-     * Moves the textbox to a given coordinate.
+     * Moves the text box to a given coordinate.
      * @param  {number} x - The x value to which the text box will move.
      * @param  {number} y - The y value to which the text box will move.
      */
@@ -658,7 +660,7 @@ class TextBox
 
     
     /**
-     * NOT FOR PUBLIC USE. Handles the textbox's keyboard key events.
+     * NOT FOR PUBLIC USE. Handles the text box's keyboard key events.
      * @param  {TextBox} self - The textbox.
      */
     _readUserInput(self)

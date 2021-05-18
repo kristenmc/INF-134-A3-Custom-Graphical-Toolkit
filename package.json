@@ -1,0 +1,24 @@
+{
+  "name": "INF-134-A3-Custom-Graphical-Toolkit",
+  "version": "1.0.0",
+  "description": "",
+  "main": "demo.js",
+  "dependencies": {
+    "jsdoc": "^3.6.7"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kristenmc/INF-134-A3-Custom-Graphical-Toolkit.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kristenmc/INF-134-A3-Custom-Graphical-Toolkit/issues"
+  },
+  "homepage": "https://github.com/kristenmc/INF-134-A3-Custom-Graphical-Toolkit#readme"
+}
