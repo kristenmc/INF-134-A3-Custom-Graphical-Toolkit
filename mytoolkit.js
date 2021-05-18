@@ -5,74 +5,95 @@ import {SVG} from './svg.min.js';
 var svgDraw = SVG().addTo('body').size('10000','10000'); 
 svgDraw.attr({'overflow': 'visible'})
 
-var MyToolkit = (function() {
-    var Button = function(){
-        var idleGradient = svgDraw.gradient('linear', function(add) {
+
+class Button
+{
+    constructor(text='Text')
+    {
+        this.idleGradient = svgDraw.gradient('linear', function(add) {
             add.stop(0, 'orange')
             add.stop(0.5, 'pink')
             add.stop(1, 'orange')
         })
-        idleGradient.from(0, 0).to(0, 1)
-        var rect = svgDraw.rect(100,50).fill(idleGradient)
-        rect.stroke({color: 'gray', width: 2, linecap: 'round', linejoin: 'round'});
 
-        var boxText = svgDraw.text('Text');
-        boxText.move(49,17);
-        boxText.fill('black');
-        boxText.font({family: 'Trebuchet MS', anchor: 'middle'})
+        this.idleGradient.from(0, 0).to(0, 1)
+        this.rect = svgDraw.rect(100,50).fill(this.idleGradient)
+        this.rect.stroke({color: 'gray', width: 2, linecap: 'round', linejoin: 'round'});
 
-        var group = svgDraw.group();
-        group.add(rect);
-        group.add(boxText);
+        this.boxText = svgDraw.text(text);
+        this.boxText.move(49,17);
+        this.boxText.fill('black');
+        this.boxText.font({family: 'Trebuchet MS', anchor: 'middle'})
 
-        var clickEvent = null;
-        var stateChangeEvent = null;
+        this.group = svgDraw.group();
+        this.group.add(this.rect);
+        this.group.add(this.boxText);
 
-        group.mouseover(function(event){
-            rect.fill({ color: 'orange'})
-            rect.stroke({color: 'gray', width: 3});
-            boxText.fill('black');
-            stateChangeEvent(event)
-        })
-        group.mouseout(function(event){
-            rect.fill({ color: idleGradient})
-            rect.stroke({color: 'gray', width: 2})
-            boxText.fill('black');
-            stateChangeEvent(event)
-        })
-        group.mouseup(function(event){
-            rect.fill({ color: 'orange'})
-            rect.stroke({color: 'black', width: 3})
-            boxText.fill('black');
-            stateChangeEvent(event)
-        })
-        group.mousedown(function(event){
-            rect.fill({ color: 'pink'})
-            rect.stroke({color: 'black', width: 4})
-            boxText.fill('gray');
-            if(clickEvent != null)
-                clickEvent(event)
-            if (stateChangeEvent != null)
-                stateChangeEvent(event)
-        })
-        return {
-            move: function(x, y) {
-                group.move(x, y);
-            },
-            onClick: function(eventHandler){
-                clickEvent = eventHandler
-            },
-            onStateChange: function(eventHandler){
-                stateChangeEvent = eventHandler
-            },
-            setText(string)
-            {
-                boxText.text(string);
-            }
-        }
+        this.clickEvent = null;
+        this.stateChangeEvent = null;
+
+        this.mouseEvents(this)
     }
-return {Button}
-}());
+
+    mouseEvents(self)
+    {
+        this.group.mouseover(function(event){
+            self.rect.fill({ color: 'orange'})
+            self.rect.stroke({color: 'gray', width: 3});
+            self.boxText.fill('black');
+
+            if (self.stateChangeEvent != null)
+                self.stateChangeEvent(event)
+        })
+        this.group.mouseout(function(event){
+            self.rect.fill({ color: self.idleGradient})
+            self.rect.stroke({color: 'gray', width: 2})
+            self.boxText.fill('black');
+
+            if (self.stateChangeEvent != null)
+                self.stateChangeEvent(event)
+        })
+        this.group.mouseup(function(event){
+            self.rect.fill({ color: 'orange'})
+            self.rect.stroke({color: 'black', width: 3})
+            self.boxText.fill('black');
+
+            if (self.stateChangeEvent != null)
+                self.stateChangeEvent(event)
+        })
+        this.group.mousedown(function(event){
+            self.rect.fill({ color: 'pink'})
+            self.rect.stroke({color: 'black', width: 4})
+            self.boxText.fill('gray');
+            
+            if(self.clickEvent != null)
+                self.clickEvent(event)
+            if (self.stateChangeEvent != null)
+                self.stateChangeEvent(event)
+        })
+    }
+
+    move(x,y)
+    {
+        this.group.move(x, y)
+    }
+
+    onClick(eventHandler)
+    {
+        this.clickEvent = eventHandler
+    }
+
+    onStateChange(eventHandler)
+    {
+        this.stateChangeEvent = eventHandler
+    }
+
+    setText(string)
+    {
+        this.boxText.text(string);
+    }
+}
+   
 
 class SingleCheckBox
 {
@@ -157,7 +178,7 @@ class SingleCheckBox
     {
         this.text.text(newText);
         if (self.stateChangeEvent != null)
-            self.stateChangeEvent("Button " + this.buttonNum + " Text Change: " + newText);
+            self.stateChangeEvent({Button: this.buttonNum, text: newText});
     }
 
     onClick(eventHandler)
@@ -293,12 +314,14 @@ class SingleRadioButton
     checkButton()
     {
         this.isChecked = true;
-        this.filling.fill('purple');
+        this.filling.fill('orange');
     }
 
     setText(newText)
     {
         this.text.text(newText);
+        if (self.stateChangeEvent != null)
+            self.stateChangeEvent({Button: this.buttonNum, text: newText});
     }
 }
 
@@ -340,10 +363,7 @@ class RadioButtons
 
             radioList[index].checkButton();
             if (radioList[index].clickEvent != null)
-            {
-                radioList[index].clickEvent("Button: " + data.detail.buttonNum)
-                radioList[index].clickEvent(data.detail.Event);
-            }    
+                radioList[index].clickEvent({Button: data.detail.buttonNum, clickEvent: data.detail.Event})  
         })
     }
 
@@ -362,8 +382,7 @@ class RadioButtons
                 self.radioList[data.detail.buttonNum].clickEvent = eventHandler;
                 if (!self.radioList[data.detail.buttonNum].previouslyChecked)
                 {
-                    self.radioList[data.detail.buttonNum].clickEvent("Button: " + data.detail.buttonNum);
-                    self.radioList[data.detail.buttonNum].clickEvent(data.detail.Event);
+                    self.radioList[data.detail.buttonNum].clickEvent({Button: data.detail.buttonNum, clickEvent: data.detail.Event});
                     self.radioList[data.detail.buttonNum].previouslyChecked = true;
                 }
             })
@@ -383,7 +402,7 @@ class TextBox
     constructor()
     {
         this.group = svgDraw.group();
-        this. polyline = svgDraw.polyline('50,75, 50,50 50,75 400,75 400,50, 50,50') //400s are rectangle width. Change to make longer or shorter
+        this. polyline = svgDraw.polyline('50,75, 50,50 50,75 400,75 400,50, 50,50') 
         this.polyline.fill('white').move(20, 20)
         this.polyline.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' })
         this.textContents = "";
@@ -492,7 +511,10 @@ class TextBox
                    }           
                 }
                 else
-                    console.log("texbox full.");
+                {
+                    if(self.stateChangeEvent != null)
+                        self.stateChangeEvent({boxStatus: "Full", typeEvent: event})
+                }
                 
                 self.text.text(self.textContents + '|');
             }
@@ -511,46 +533,69 @@ class TextBox
 
 class ScrollBar
 {
-    constructor(length) //NOTE TO SELF: CHECK TO SEE IF MOVING SCROLL THUMB WOULD BE OVER LIMIT. IF SO, ONLY MOVE TO LIMIT, NOT PAST IT
+    constructor(length)
     {
-        if (length < 100)
-            this.barLength = 100;
+        if (length < 50)
+            this.barHeight = 50;
         else
-            this.barLength = length;
+            this.barHeight = length;
 
-        console.log(svgDraw.attr())
-        this.upButton = svgDraw.polyline('0,0 0,25 25,25 25,0 0,0');
+        this.upButton = svgDraw.rect(25,25);
         this.upButton.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' });
         this.upButton.fill('white');
 
-        this.scrollArea = svgDraw.polyline([[0,25], [0,this.barLength], [25,this.barLength], [25,25], [0,25]]);
+        this.scrollArea = svgDraw.rect(25,this.barHeight);
         this.scrollArea.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' });
         this.scrollArea.fill('gray');
+        this.scrollArea.move(0,25)
        
-        this.downButton = svgDraw.polyline([[0,this.barLength], [0,this.barLength+25], [25,this.barLength+25], [25,this.barLength]]);
+        this.downButton = svgDraw.rect(25,25);
         this.downButton.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' });
         this.downButton.fill('white');
+        this.downButton.move(0,this.barHeight+25);
 
-        this.scroller = svgDraw.polyline('4,28 4,46 21,46 21,28 4,28');
-        this.scroller.stroke({ color: '#f23f8d', width: 4, linecap: 'round', linejoin: 'round' });
-        this.scroller.fill('black');
+        this.scroller = svgDraw.rect(17, 30);
+        this.scroller.stroke({ color: 'pink', width: 4, linecap: 'round', linejoin: 'round' });
+        this.scroller.fill('orange');
+        this.scroller.move(4,28);
 
-        this.scrollBorderUpper = svgDraw.line(0,28,25,28);
-        this.scrollBorderUpper.stroke({ color: '#34b7eb', width: 4, linecap: 'round'});
+        this.scrollBorderUpper = svgDraw.line(0,30,25,30);
+        this.scrollBorderUpper.stroke({ color: 'transparent', width: 4, linecap: 'round'});
 
-        this.scrollBorderLower = svgDraw.line(0,this.barLength-5, 25,this.barLength-5);
-        this.scrollBorderLower.stroke({ color: '#34b7eb', width: 4, linecap: 'round'});
+        this.scrollBorderLower = svgDraw.line(0,this.barHeight+20, 25,this.barHeight+20);
+        this.scrollBorderLower.stroke({ color: 'transparent', width: 4, linecap: 'round'});
+
+        this.upArrow = svgDraw.polyline('4,20 10,10 16,20');
+        this.upArrow.fill('none');
+        this.upArrow.stroke({ color: 'black', width: 2, linecap: 'round'})
+        this.upArrow.move(6.5,8)
+
+
+        this.downArrow = svgDraw.polyline('4,10 10,20  16,10');
+        this.downArrow.fill('none');
+        this.downArrow.stroke({ color: 'black', width: 2, linecap: 'round'})
+        this.downArrow.move(6,this.barHeight+32)
+
 
         this.group = svgDraw.group();
-        this.group.add(this.upButton)
         this.group.add(this.scrollArea)
-        this.group.add(this.downButton)
         this.group.add(this.scroller)
         this.group.add(this.scrollBorderUpper)
         this.group.add(this.scrollBorderLower)
 
+        this.upGroup = svgDraw.group()
+        this.upGroup.add(this.upButton)
+        this.upGroup.add(this.upArrow)
+
+
+        this.downGroup = svgDraw.group();
+        this.downGroup.add(this.downButton)
+        this.downGroup.add(this.downArrow)
+
         this.isHeld = false;
-        self=this;
+        
+        this.dragEvent = null
+        this.stateChangeEvent = null
 
         this.enableDrag();
         this.dragScroller(this.scroller, this);
@@ -558,27 +603,56 @@ class ScrollBar
     }
     move(x,y)
     {
-
+        this.group.move(x,y)
+        this.upGroup.move(x,y-25)
+        this.downGroup.move(x,y+this.barHeight)
     }
 
-    setLength(newLength)
+    setHeight(newHeight)
     {
+        if (newHeight >= 50)
+            this.barHeight = newHeight;
+        else
+            this.barHeight = 50;
+        this.scrollArea.height(this.barHeight);
 
+        this.downGroup.y(this.scrollArea.y()+this.barHeight)
+        this.scrollBorderLower.y(this.scrollArea.y()+this.barHeight-5)
+    }
+    getThumbPosition()
+    {
+        return {x: this.scroller.x(), y: this.scroller.y()}
+    }
+
+    onDrag(eventHandler)
+    {
+        this.dragEvent = eventHandler
+    }
+
+    onStateChange(eventHandler)
+    {
+        this.stateChangeEvent = eventHandler
     }
 
     enableDrag()
     {
+        var self=this;
         this.scroller.mousedown(function(event){
             self.isHeld = true;
-            console.log(event)
+            if  (self.stateChangeEvent != null)
+                self.stateChangeEvent(event)
         })
 
         this.scroller.mouseup(function(event){
             self.isHeld = false;
+            if (self.stateChangeEvent != null)
+                self.stateChangeEvent(event)
         })
 
         window.addEventListener('mouseup', function(event){
             self.isHeld = false;
+            if (self.stateChangeEvent != null)
+                self.stateChangeEvent(event)
           })
     }
 
@@ -587,80 +661,91 @@ class ScrollBar
         window.addEventListener('mousemove', function(event){
             if (self.isHeld)
             {
-                console.log(event)  
-                console.log("event: " + event.clientY)    
-                console.log("scroller: " + scroll.y())
-
                 var CTM = event.target.getScreenCTM();
                 var newY = (event.clientY - CTM.f)/CTM.d;
 
                 if (self.atUpperBorder())
                 {
-                    console.log("At Top")
                     if(newY > scroll.y())
-                        scroll.y(newY);     
+                        scroll.y(newY);
                 }
                 else if (self.atLowerBorder())
                 {
-                    console.log("At Bottom")
                     if(newY < scroll.y())
-                        scroll.y(newY); 
+                        scroll.y(newY);
                 }
                 else
-                    scroll.y(newY);
+                {
+                    if(self.dragEvent != null)
+                    {
+                        if(scroll.y() > newY)
+                            self.dragEvent({dragDirection: 'Up', dragEvent: event})
+                        else if(scroll.y() < newY)
+                            self.dragEvent({dragDirection: 'Down', dragEvent: event})
+                    }
+                    if (newY >= self.scrollArea.y() & newY < self.scrollArea.y()+self.barHeight)
+                        scroll.y(newY);
+                }
+                if (self.stateChangeEvent != null)
+                    self.stateChangeEvent(event)     
             }     
         })
     }
-
+             
     clickButtons(scroll, self)
     {
-        this.upButton.mousedown(function(event){
-            this.fill('pink');
+        this.upGroup.mousedown(function(event){
+            self.upButton.fill('pink');
+            self.upArrow.stroke({color:'gray'})
 
-            if (self.atUpperBorder())
+            if (!self.atUpperBorder())
             {
-                if(event.clientY > scroll.y())
-                    scroll.y(scroll.y()-5);
-            }  
-            else
-                scroll.y(scroll.y()-5);
+                if (self.dragEvent != null)
+                    self.dragEvent({dragDirection: 'Up', dragEvent: event})
+                scroll.y(scroll.y()-5);   
+            }    
         })
 
-        this.downButton.mousedown(function(event){
-            this.fill('pink');
+        this.downGroup.mousedown(function(event){
+            self.downButton.fill('pink');
+            self.downArrow.stroke({color:'gray'})
 
-            if (self.atLowerBorder())
+            if (!self.atLowerBorder())
             {
-                if(event.clientY < scroll.y())
-                    scroll.y(scroll.y()+5);
-            }
-            else
-                scroll.y(scroll.y()+5);
+                if (self.dragEvent != null)
+                    self.dragEvent({dragDirection: 'Down', dragEvent: event})
+                scroll.y(scroll.y()+5);   
+            }    
         })
 
         this.upButton.mouseup(function(event){
             this.fill('white');
+            self.upArrow.stroke({color:'black'})
         })
 
         this.downButton.mouseup(function(event){
             this.fill('white');
+            self.downArrow.stroke({color:'black'})
         })
+
+        window.addEventListener('mouseup', function(event){
+            self.upButton.fill('white')
+            self.downButton.fill('white')
+            self.upArrow.stroke({color:'black'})
+            self.downArrow.stroke({color:'black'})
+          })
+          if (self.stateChangeEvent != null)
+            self.stateChangeEvent(event)
     }
 
     atUpperBorder()
     {
-        var upperBorderBox = this.scrollBorderUpper.bbox();
-        var scrollerBox = this.scroller.bbox();
-
-        return scrollerBox.y <= upperBorderBox.y;
+        return this.scroller.y() <= this.scrollBorderUpper.y();
     }
 
     atLowerBorder()
     {
-        var lowerBorderBox = this.scrollBorderLower.bbox();
-        var scrollerBox = this.scroller.bbox();
-
-        return (scrollerBox.y + 2*(scrollerBox.cy -scrollerBox.y))>= lowerBorderBox.y;
+        return (this.scroller.y() + 2*(this.scroller.cy() -this.scroller.y()))>= this.scrollBorderLower.y();
     }
 }
 
@@ -752,9 +837,9 @@ class ProgressBar
         this._barFilling.width(this._barFillNum);
 
         if (this._incrementEvent != null)
-            this._incrementEvent("New Bar Percentage: " + this._barPerc);
+            this._incrementEvent({newSetPercentage: this._barPerc});
         if (this._stateChangeEvent != null)
-            this._stateChangeEvent("New Bar Percentage: " + this._barPerc);
+            this._stateChangeEvent({newSetPercentage: this._barPerc});
     }
     setWidth(newWidth) 
     {
@@ -772,7 +857,7 @@ class ProgressBar
         this._barFilling.width(this._barPerc*0.01*this._fullBarValue);
 
         if (this._stateChangeEvent != null)
-            this._stateChangeEvent("New Bar Width: " + this._barWidth);
+            this._stateChangeEvent({newWidth:this._barWidth});
     }
     increment(inc)
     {
@@ -788,9 +873,9 @@ class ProgressBar
         
 
         if (this._incrementEvent != null)
-            this._incrementEvent("New Bar Percentage: " + this._barPerc);
+            this._incrementEvent({newIncrementedPercentage: this._barPerc});
         if (this._stateChangeEvent != null)
-            this._stateChangeEvent("New Bar Percentage: " + this._barPerc);
+            this._stateChangeEvent({newIncrementedPercentage: this._barPerc});
     }
 
 
@@ -820,8 +905,9 @@ class ProgressBar
 
 class ToggleSwitch
 {
-    constructor(startState)
+    constructor(startState, enableColor='#60e356')
     {
+        this.switchColor = enableColor
         this._switchArea = svgDraw.rect(60, 40); 
         this._switchArea.radius(20)
         this._switchArea.move(50,50); 
@@ -849,7 +935,7 @@ class ToggleSwitch
         {
             this._isOn = true;
             this._switch.move(this._onX, this._switch.y());
-            this._switchArea.fill('#60e356');
+            this._switchArea.fill(this.switchColor);
         }
         this._flipSwitch();
         this._otherStateChanges(this);
@@ -865,6 +951,11 @@ class ToggleSwitch
     isEnabled()
     {
         return this._isOn;
+    }
+
+    getColor()
+    {
+        return this.switchColor;
     }
 
     onClick(eventHandler)
@@ -888,10 +979,10 @@ class ToggleSwitch
                 self._switchOff();   
             
             if (self._clickEvent != null)
-                self._clickEvent(event);
+                self._clickEvent({switchEnabled: this._isOn, switchEvent: event});
 
             if (self._stateChangeEvent != null)
-                self._stateChangeEvent(event);
+                self._stateChangeEvent({switchEnabled: this._isOn, switchEvent: event});
         })
                 
     }
@@ -907,7 +998,7 @@ class ToggleSwitch
     {
         this._isOn = true;
         this._switch.animate({duration: 100}).move(this._onX, this._switch.y());
-        this._switchArea.fill('#60e356');
+        this._switchArea.fill(this.switchColor);
     }
 
     _otherStateChanges(self)
@@ -923,7 +1014,7 @@ class ToggleSwitch
     }
 }
 
-export{MyToolkit}
+export{Button}
 export{ScrollBar}
 export{TextBox}
 export{RadioButtons}
