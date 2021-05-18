@@ -26,7 +26,7 @@ checkboxes.onClick(function(e){
 checkboxes.onStateChange(function(e){
 	console.log(e);
 });
-checkboxes.setText(0, "Hi");
+checkboxes.setText("Hi");
 checkboxes.move(300,100)
 
 var radiobuttons = new RadioButtons(5);
@@ -37,8 +37,8 @@ radiobuttons.onStateChange(function(e){
 	console.log(e);
 });
 
-radiobuttons.setText(3, "Hello!");
-radiobuttons.setText(1, "Oh No!");
+radiobuttons.setText("Hello!", 3);
+radiobuttons.setText("Oh No!", 1);
 radiobuttons.move(50, 400);
 
 var textbox = new TextBox();

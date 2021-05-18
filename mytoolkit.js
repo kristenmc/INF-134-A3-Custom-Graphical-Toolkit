@@ -1,754 +1,1004 @@
 // File name: mytoolkit.js
+/**
+ * @author Kristen Campbell
+ */
 
 import {SVG} from './svg.min.js';
 
 var svgDraw = SVG().addTo('body').size('10000','10000'); 
 svgDraw.attr({'overflow': 'visible'})
 
-
+/**Class representing a button.*/
 class Button
 {
+    /**
+     * Creates a button.
+     * @param  {string} text='Text' - Text on button upon initialization. Defaults to "Text" if no input is given.
+     */
     constructor(text='Text')
     {
-        this.idleGradient = svgDraw.gradient('linear', function(add) {
+        this._idleGradient = svgDraw.gradient('linear', function(add) {
             add.stop(0, 'orange')
             add.stop(0.5, 'pink')
             add.stop(1, 'orange')
         })
 
-        this.idleGradient.from(0, 0).to(0, 1)
-        this.rect = svgDraw.rect(100,50).fill(this.idleGradient)
-        this.rect.stroke({color: 'gray', width: 2, linecap: 'round', linejoin: 'round'});
+        this._idleGradient.from(0, 0).to(0, 1)
+        this._rect = svgDraw.rect(100,50).fill(this._idleGradient)
+        this._rect.stroke({color: 'gray', width: 2, linecap: 'round', linejoin: 'round'});
 
-        this.boxText = svgDraw.text(text);
-        this.boxText.move(49,17);
-        this.boxText.fill('black');
-        this.boxText.font({family: 'Trebuchet MS', anchor: 'middle'})
+        this._boxText = svgDraw.text(text);
+        this._boxText.move(49,17);
+        this._boxText.fill('black');
+        this._boxText.font({family: 'Trebuchet MS', anchor: 'middle'})
 
-        this.group = svgDraw.group();
-        this.group.add(this.rect);
-        this.group.add(this.boxText);
+        this._group = svgDraw.group();
+        this._group.add(this._rect);
+        this._group.add(this._boxText);
 
-        this.clickEvent = null;
-        this.stateChangeEvent = null;
+        this._clickEvent = null;
+        this._stateChangeEvent = null;
 
-        this.mouseEvents(this)
+        this._mouseEvents(this)
     }
 
-    mouseEvents(self)
-    {
-        this.group.mouseover(function(event){
-            self.rect.fill({ color: 'orange'})
-            self.rect.stroke({color: 'gray', width: 3});
-            self.boxText.fill('black');
-
-            if (self.stateChangeEvent != null)
-                self.stateChangeEvent(event)
-        })
-        this.group.mouseout(function(event){
-            self.rect.fill({ color: self.idleGradient})
-            self.rect.stroke({color: 'gray', width: 2})
-            self.boxText.fill('black');
-
-            if (self.stateChangeEvent != null)
-                self.stateChangeEvent(event)
-        })
-        this.group.mouseup(function(event){
-            self.rect.fill({ color: 'orange'})
-            self.rect.stroke({color: 'black', width: 3})
-            self.boxText.fill('black');
-
-            if (self.stateChangeEvent != null)
-                self.stateChangeEvent(event)
-        })
-        this.group.mousedown(function(event){
-            self.rect.fill({ color: 'pink'})
-            self.rect.stroke({color: 'black', width: 4})
-            self.boxText.fill('gray');
-            
-            if(self.clickEvent != null)
-                self.clickEvent(event)
-            if (self.stateChangeEvent != null)
-                self.stateChangeEvent(event)
-        })
-    }
-
+    /**
+     * Moves the button to a given coordinate.
+     * @param  {number} x - The x value to which the button will move.
+     * @param  {number} y - The y value to which the button will move.
+     */
     move(x,y)
     {
-        this.group.move(x, y)
+        this._group.move(x, y)
     }
 
+    /**
+     * Assigns an event handler to respond to button click events.
+     * @param  {function} eventHandler - The event handler.
+     */
     onClick(eventHandler)
     {
-        this.clickEvent = eventHandler
+        this._clickEvent = eventHandler
     }
 
+    /**
+     * Assigns an event handler to respond to all button events.
+     * @param  {function} eventHandler - The event handler.
+     */
     onStateChange(eventHandler)
     {
-        this.stateChangeEvent = eventHandler
+        this._stateChangeEvent = eventHandler
     }
 
-    setText(string)
+    /**
+     * Changes the button's text.
+     * @param  {string} newText - The new text to be displayed on the button.
+     */
+    setText(newText)
     {
-        this.boxText.text(string);
+        this._boxText.text(newText);
     }
+
+    /**
+     *NOT FOR PUBLIC USE. Handles all mouse events.
+     * @param  {Button} self - The button calling the function.
+     */
+     _mouseEvents(self)
+     {
+         this._group.mouseover(function(event){
+             self._rect.fill({ color: 'orange'})
+             self._rect.stroke({color: 'gray', width: 3});
+             self._boxText.fill('black');
+ 
+             if (self._stateChangeEvent != null)
+                 self._stateChangeEvent(event)
+         })
+         this._group.mouseout(function(event){
+             self._rect.fill({ color: self._idleGradient})
+             self._rect.stroke({color: 'gray', width: 2})
+             self._boxText.fill('black');
+ 
+             if (self._stateChangeEvent != null)
+                 self._stateChangeEvent(event)
+         })
+         this._group.mouseup(function(event){
+             self._rect.fill({ color: 'orange'})
+             self._rect.stroke({color: 'black', width: 3})
+             self._boxText.fill('black');
+ 
+             if (self._stateChangeEvent != null)
+                 self._stateChangeEvent(event)
+         })
+         this._group.mousedown(function(event){
+             self._rect.fill({ color: 'pink'})
+             self._rect.stroke({color: 'black', width: 4})
+             self._boxText.fill('gray');
+             
+             if(self._clickEvent != null)
+                 self._clickEvent(event)
+             if (self._stateChangeEvent != null)
+                 self._stateChangeEvent(event)
+         })
+     }
 }
    
-
+/**Class representing one checkbox.*/
 class SingleCheckBox
 {
+    /**
+     * NOT FOR PUBLIC USE. Creates a single checkbox.
+     * @param  {integer} buttonNum - The number assigned to a checkbox. Begins at 0.
+     */
     constructor(buttonNum)
     {
-        this.group = svgDraw.group();
+        this._group = svgDraw.group();
 
-        this.rect = svgDraw.rect(25,25).fill('white')
-        this.rect.stroke({color: 'black', width: 4, linecap: 'round', linejoin: 'round'});
+        this._rect = svgDraw.rect(25,25).fill('white')
+        this._rect.stroke({color: 'black', width: 4, linecap: 'round', linejoin: 'round'});
 
-        this.checkmark = svgDraw.polyline('8,14, 12,19 18,6');
-        this.checkmark.fill('transparent');
-        this.checkmark.stroke({color: 'transparent', width: 2, linecap: 'round', linejoin: 'round'});
+        this._checkmark = svgDraw.polyline('8,14, 12,19 18,6');
+        this._checkmark.fill('transparent');
+        this._checkmark.stroke({color: 'transparent', width: 2, linecap: 'round', linejoin: 'round'});
 
-        this.text = svgDraw.text("Test " + buttonNum);
-        this.text.move(35,3);
-        this.text.font({family: 'Trebuchet MS'});
+        this._text = svgDraw.text("Test " + buttonNum);
+        this._text.move(35,3);
+        this._text.font({family: 'Trebuchet MS'});
 
-        this.group.add(this.rect);
-        this.group.add(this.checkmark);
-        this.group.add(this.text)
+        this._group.add(this._rect);
+        this._group.add(this._checkmark);
+        this._group.add(this._text)
 
-        this.buttonNum = buttonNum;
-        this.clickEvent = null;
-        this.stateChangeEvent = null;
-        this.checked = false;
-        this.previouslyChecked = false;
+        this._buttonNum = buttonNum;
+        this._clickEvent = null;
+        this._stateChangeEvent = null;
+        this._checked = false;
+        this._previouslyChecked = false;
 
 
-        this.rect.y((buttonNum+1)*35);
-        this.checkmark.y((buttonNum+1)*35 + 5);
-        this.text.y((buttonNum+1)*36);
+        this._rect.y((buttonNum+1)*35);
+        this._checkmark.y((buttonNum+1)*35 + 5);
+        this._text.y((buttonNum+1)*36);
 
         
-        this.clickBox(this);
-        this.otherStateChanges(this);
+        this._clickBox(this);
+        this._otherStateChanges(this);
     }
 
-    clickBox(self)
+    /**
+     * NOT FOR PUBLIC USE. Moves the checkbox to a given coordinate.
+     * @param  {number} x - The x value to which the checkbox will move.
+     * @param  {number} y - The y value to which the checkbox will move.
+     */
+     _move(x, y)
+     {
+         this._rect.move(x,(this._buttonNum+1)*35+y);
+         this._checkmark.move(x + 7, ((this._buttonNum+1)*35 + 6) + y);
+         this._text.move(x + 35, ((this._buttonNum+1)*36) + y)
+     }
+ 
+     /**
+      * NOT FOR PUBLIC USE. Changes the checkbox's text.
+      * @param  {string} newText - The new text to be displayed next to the checkbox.
+      */
+     _setText(newText)
+     {
+         this._text.text(newText);
+         if (self._stateChangeEvent != null)
+             self._stateChangeEvent({Button: this._buttonNum, text: newText});
+     }
+ 
+     /**
+      * NOT FOR PUBLIC USE. Assigns an event handler to respond to the checkbox's click events.
+      * @param  {function} eventHandler - The event handler.
+      */
+     _onClick(eventHandler)
+     {
+         this._clickEvent = eventHandler;
+     }
+ 
+     
+     /**
+      * NOT FOR PUBLIC USE. Assigns an event handler to respond to all of the checkbox's events.
+      * @param  {function} eventHandler - The event handler.
+      */
+     _onStateChange(eventHandler)
+     {
+         this._stateChangeEvent = eventHandler
+     }
+
+
+    /**
+     * NOT FOR PUBLIC USE. Handles checkbox click events.
+     * @param  {SingleCheckBox} self - The checkbox being clicked.
+     */
+    _clickBox(self)
     {
-        this.group.click(function(event){
-            if (!self.checked)
+        this._group.click(function(event){
+            if (!self._checked)
             {
-                self.checkmark.stroke({color: 'black'});
-                self.checked = true;
+                self._checkmark.stroke({color: 'black'});
+                self._checked = true;
             } 
             else
             {
-                self.checkmark.stroke({color: 'transparent'});
-                self.checked = false;
+                self._checkmark.stroke({color: 'transparent'});
+                self._checked = false;
             }
-            this.fire('checkboxClicked', self.buttonNum); 
-            if (self.clickEvent != null)
-                self.clickEvent({Button: self.buttonNum, clickEvent: event});
-            if (self.stateChangeEvent != null)
-                self.stateChangeEvent({Button: self.buttonNum, clickEvent: event});    
+            this.fire('checkboxClicked', self._buttonNum); 
+            if (self._clickEvent != null)
+                self._clickEvent({Button: self._buttonNum, clickEvent: event});
+            if (self._stateChangeEvent != null)
+                self._stateChangeEvent({Button: self._buttonNum, clickEvent: event});    
         })
     }
 
-    otherStateChanges(self)
+    /** NOT FOR PUBLIC USE. Handles the checkbox's mouse events that are not click events.
+    * @param  {SingleCheckBox} self - The checkbox.
+    */
+    _otherStateChanges(self)
     {
-        this.group.mouseover(function(event){
-            if (self.stateChangeEvent != null)
-                self.stateChangeEvent({Button: self.buttonNum, stateEvent: event});
+        this._group.mouseover(function(event){
+            if (self._stateChangeEvent != null)
+                self._stateChangeEvent({Button: self._buttonNum, stateEvent: event});
         })
-        this.group.mouseout(function(event){
-            if (self.stateChangeEvent != null)
-                self.stateChangeEvent({Button: self.buttonNum, stateEvent: event});
+        this._group.mouseout(function(event){
+            if (self._stateChangeEvent != null)
+                self._stateChangeEvent({Button: self._buttonNum, stateEvent: event});
         })
     }
+    
 
-    move(x, y)
-    {
-        this.rect.move(x,(this.buttonNum+1)*35+y);
-        this.checkmark.move(x + 7, ((this.buttonNum+1)*35 + 6) + y);
-        this.text.move(x + 35, ((this.buttonNum+1)*36) + y)
-    }
-
-    setText(newText)
-    {
-        this.text.text(newText);
-        if (self.stateChangeEvent != null)
-            self.stateChangeEvent({Button: this.buttonNum, text: newText});
-    }
-
-    onClick(eventHandler)
-    {
-        this.clickEvent = eventHandler;
-    }
-
-    onStateChange(eventHandler)
-    {
-        this.stateChangeEvent = eventHandler
-    }
 }
 
+/**Class representing a group of checkboxes.*/
 class CheckBoxes
 {
+    /**
+     * Creates a group of checkboxes. Assigned checkbox numbers begin at 0.
+     * @param  {number} numButtons - The number of checkboxes to be created.
+     */
     constructor(numButtons)
     {
-        this.checkboxList = [];
+        this._checkboxList = [];
 
         for(var i = 0; i < numButtons; i++)
-            this.checkboxList.push(new SingleCheckBox(i, svgDraw));
+            this._checkboxList.push(new SingleCheckBox(i, svgDraw));
     }
-
+    
+    /**
+     * Moves the group of checkboxes to a given coordinate.
+     * @param  {number} x - The x value to which the checkboxes will move.
+     * @param  {number} y - The y value to which the checkboxes will move.
+     */
     move(x, y)
     {
-        for(var i = 0; i < this.checkboxList.length; i++)
-            this.checkboxList[i].move(x,y);
+        for(var i = 0; i < this._checkboxList.length; i++)
+            this._checkboxList[i]._move(x,y);
     }
 
-    setText(buttonNum, newText)
+    
+    /**
+     * Changes the text of one checkbox in the group.
+     * @param  {string} newText - The new text to be displayed next to the checkbox.
+     * @param  {number} buttonNum=0 - The checkbox in the group to have its text change. Defaults to the first checbox in the group.
+     */
+    setText(newText, buttonNum=0)
     {
-        if (buttonNum >= 0 & buttonNum < this.checkboxList.length)
-            this.checkboxList[buttonNum].setText(newText);
+        if (buttonNum >= 0 & buttonNum < this._checkboxList.length)
+            this._checkboxList[buttonNum]._setText(newText);
     }
 
+
+     /**
+      * Assigns an event handler to respond to the click events for every checkbox in the group.
+      * @param  {function} eventHandler - The event handler.
+      */
     onClick(eventHandler)
     {
         var self = this;
-        for(var i = 0; i < this.checkboxList.length; i++)
+        for(var i = 0; i < this._checkboxList.length; i++)
         {
-            this.checkboxList[i].group.on('checkboxClicked', function(event){
-                self.checkboxList[event.detail].clickEvent = eventHandler;
+            this._checkboxList[i]._group.on('checkboxClicked', function(event){
+                self._checkboxList[event.detail]._clickEvent = eventHandler;
             })
         }
     }
 
+     /**
+      * Assigns an event handler to respond to all the events for every checkbox in the group.
+      * @param  {function} eventHandler - The event handler.
+      */
     onStateChange(eventHandler)
     {
-        for(var i = 0; i < this.checkboxList.length; i++)
-            this.checkboxList[i].stateChangeEvent = eventHandler;
+        for(var i = 0; i < this._checkboxList.length; i++)
+            this._checkboxList[i]._stateChangeEvent = eventHandler;
     }
 }
 
-
+/**Class representing one radio button.*/
 class SingleRadioButton
 {
+    
+    /**
+     * NOT FOR PUBLIC USE. Creates a single radio button.
+     * @param  {integer} buttonNum - The number assigned to a checkbox. Begins at 0.
+     */
     constructor(buttonNum)
     {
-        this.buttonNum = buttonNum;
-        this.group = svgDraw.group();
-        this.circle = svgDraw.circle(25).fill('white');
-        this.circle.stroke({color: 'black', width: 4});
+        this._buttonNum = buttonNum;
+        this._group = svgDraw.group();
+        this._circle = svgDraw.circle(25).fill('white');
+        this._circle.stroke({color: 'black', width: 4});
 
-        this.filling = svgDraw.circle(15).fill('transparent');
-        this.filling.move(5,5);
+        this._filling = svgDraw.circle(15).fill('transparent');
+        this._filling.move(5,5);
 
-        this.text = svgDraw.text("Test " + buttonNum);
-        this.text.move(35,3);
-        this.text.font({family: 'Trebuchet MS'});
+        this._text = svgDraw.text("Test " + buttonNum);
+        this._text.move(35,3);
+        this._text.font({family: 'Trebuchet MS'});
 
-        this.group.add(this.circle);
-        this.group.add(this.filling);
-        this.group.add(this.text);
+        this._group.add(this._circle);
+        this._group.add(this._filling);
+        this._group.add(this._text);
 
-        this.isChecked = false;
-        this.previouslyChecked = false;
-        this.clickEvent = null
+        this._isChecked = false;
+        this._previouslyChecked = false;
+        this._clickEvent = null
         
-        this.circle.y((buttonNum+1)*35);
-        this.filling.y((buttonNum+1)*35 + 5);
-        this.text.y((buttonNum+1)*36);
+        this._circle.y((buttonNum+1)*35);
+        this._filling.y((buttonNum+1)*35 + 5);
+        this._text.y((buttonNum+1)*36);
 
         self = this;
 
-        this.colorChange(buttonNum);
+        this._buttonFill(buttonNum);
 
-        this.otherStateChanges(this)
+        this._otherStateChanges(this)
     }
 
-    move(x, y)
+    /**
+     * NOT FOR PUBLIC USE. Moves the radio button to a given coordinate.
+     * @param  {number} x - The x value to which the radio button will move.
+     * @param  {number} y - The y value to which the radio button will move.
+     */
+    _move(x, y)
     {
-        this.circle.move(x,(this.buttonNum+1)*35+y);
-        this.filling.move(x + 5, ((this.buttonNum+1)*35 + 5) + y);
-        this.text.move(x + 35, ((this.buttonNum+1)*36) + y)
+        this._circle.move(x,(this._buttonNum+1)*35+y);
+        this._filling.move(x + 5, ((this._buttonNum+1)*35 + 5) + y);
+        this._text.move(x + 35, ((this._buttonNum+1)*36) + y)
     }
 
-    onClick(eventHandler)
+     /**
+      * NOT FOR PUBLIC USE. Changes the radio button's text.
+      * @param  {string} newText - The new text to be displayed on the radio button.
+      */
+    _setText(newText)
     {
-        this.clickEvent = eventHandler;
+        this._text.text(newText);
+        if (self.stateChangeEvent != null)
+            self.stateChangeEvent({Button: this._buttonNum, text: newText});
     }
 
-    onStateChange(eventHandler)
+     /**
+      * NOT FOR PUBLIC USE. Assigns an event handler to respond to the radio button's click events.
+      * @param  {function} eventHandler - The event handler.
+      */
+    _onClick(eventHandler)
+    {
+        this._clickEvent = eventHandler;
+    }
+
+     /**
+      * NOT FOR PUBLIC USE. Assigns an event handler to respond to all of the radio button's events.
+      * @param  {function} eventHandler - The event handler.
+      */
+    _onStateChange(eventHandler)
     {
         this.stateChangeEvent = eventHandler;
     }
 
-
-    colorChange(button)
+    /**
+     * NOT FOR PUBLIC USE. Fires an event whenever the radio button is clicked.
+     * @param  {integer} button - The current radio button's number.
+     */
+    _buttonFill(button)
     {
-        this.group.click(function(event){
+        this._group.click(function(event){
             this.fire('buttonChecked', {buttonNum: button,Event: event});
         })
     }
 
-    otherStateChanges(self)
+    /** NOT FOR PUBLIC USE. Handles the radio button's mouse events that are not click events.
+    * @param  {SingleRadioButton} self - The radio button.
+    */
+    _otherStateChanges(self)
     {
-        this.group.mouseover(function(event){
-            if (self.stateChangeEvent != null)
-                self.stateChangeEvent({Button: self.buttonNum, stateEvent: event});
+        this._group.mouseover(function(event){
+            if (self._stateChangeEvent != null)
+                self._stateChangeEvent({Button: self._buttonNum, stateEvent: event});
         })
-        this.group.mouseout(function(event){
-            if (self.stateChangeEvent != null)
-                self.stateChangeEvent({Button: self.buttonNum, stateEvent: event});
+        this._group.mouseout(function(event){
+            if (self._stateChangeEvent != null)
+                self._stateChangeEvent({Button: self._buttonNum, stateEvent: event});
         })
     }
-
-    uncheckButton()
+    /**
+     * NOT FOR PUBLIC USE. Unchecks the radio button.
+     */
+    _uncheckButton()
     {
-        this.isChecked = false;
-        this.filling.fill('transparent');
+        this._isChecked = false;
+        this._filling.fill('transparent');
     }
 
-    checkButton()
+    /**
+     * NOT FOR PUBLIC USE. Marks the radio button as checked.
+     */
+    _checkButton()
     {
-        this.isChecked = true;
-        this.filling.fill('orange');
-    }
-
-    setText(newText)
-    {
-        this.text.text(newText);
-        if (self.stateChangeEvent != null)
-            self.stateChangeEvent({Button: this.buttonNum, text: newText});
+        this._isChecked = true;
+        this._filling.fill('orange');
     }
 }
 
-
+/**Class representing a group of radio buttons.*/
 class RadioButtons  
 {
+
+    /**
+     * Creates a group of radio buttons. Assigned radio button numbers begin at 0.
+     * @param  {integer} numButtons - The number of radio buttons to be created.
+     */
     constructor(numButtons)
     {
-        this.radioList = [];
+        this._radioList = [];
         self = this;
 
         for(var i = 0; i < numButtons; i++)
         {
             var newButton = new SingleRadioButton(i, svgDraw);
-            this.radioList.push(newButton);
-            newButton.move(5,5);
+            this._radioList.push(newButton);
+            newButton._move(5,5);
         }
 
-        for(var i = 0; i < this.radioList.length; i++)
+        for(var i = 0; i < this._radioList.length; i++)
         {
-            this.checkColorChange(i, this.radioList.length, this.radioList);
+            this._checkColorChange(i, this._radioList.length, this._radioList);
         }   
     }
 
+    /**
+     * Moves the group of radio buttons to a given coordinate.
+     * @param  {number} x - The x value to which the radio butons will move.
+     * @param  {number} y - The y value to which the radio buttons will move.
+     */
     move(x, y)
     {
-        for(var i = 0; i < this.radioList.length; i++)
-            this.radioList[i].move(x,y);  
+        for(var i = 0; i < this._radioList.length; i++)
+            this._radioList[i]._move(x,y);  
     }
 
-    checkColorChange(index, listLength, radioList)
+
+    /**
+     * Changes the text of one radio buttons in the group.
+     * @param  {string} newText - The new text to be displayed next to the radio button.
+     * @param  {number} buttonNum - The checkbox in the group to have its text change. Defaults to the first radio button in the group.
+     */
+    setText(newText, buttonNum=0)
     {
-        this.radioList[index].group.on('buttonChecked', function(data) {
-            self.currentlyChecked = data.detail.buttonNum;
-            for (var i = 0; i < listLength; i++)
-            {
-                radioList[i].uncheckButton();
-            }
-
-            radioList[index].checkButton();
-            if (radioList[index].clickEvent != null)
-                radioList[index].clickEvent({Button: data.detail.buttonNum, clickEvent: data.detail.Event})  
-        })
+        if (buttonNum >= 0 & buttonNum < this._radioList.length)
+            this._radioList[buttonNum]._setText(newText);
     }
 
-    setText(buttonNum, newText)
-    {
-        if (buttonNum >= 0 & buttonNum < this.radioList.length)
-            this.radioList[buttonNum].setText(newText);
-    }
-
+     /**
+      * Assigns an event handler to respond to the click events for every radio button in the group.
+      * @param  {function} eventHandler - The event handler.
+      */
     onClick(eventHandler)
     {
         var self = this;
-        for(var i = 0; i < this.radioList.length; i++)
+        for(var i = 0; i < this._radioList.length; i++)
         {
-            this.radioList[i].group.on('buttonChecked', function(data){
-                self.radioList[data.detail.buttonNum].clickEvent = eventHandler;
-                if (!self.radioList[data.detail.buttonNum].previouslyChecked)
+            this._radioList[i]._group.on('buttonChecked', function(data){
+                self._radioList[data.detail.buttonNum]._clickEvent = eventHandler;
+                if (!self._radioList[data.detail.buttonNum]._previouslyChecked)
                 {
-                    self.radioList[data.detail.buttonNum].clickEvent({Button: data.detail.buttonNum, clickEvent: data.detail.Event});
-                    self.radioList[data.detail.buttonNum].previouslyChecked = true;
+                    self._radioList[data.detail.buttonNum]._clickEvent({Button: data.detail.buttonNum, clickEvent: data.detail.Event});
+                    self._radioList[data.detail.buttonNum]._previouslyChecked = true;
                 }
             })
         }
     }
 
+     /**
+      * Assigns an event handler to respond to all the events for every radio button in the group.
+      * @param  {function} eventHandler - The event handler.
+      */
     onStateChange(eventHandler)
     {
-        for(var i = 0; i < this.radioList.length; i++)
-            this.radioList[i].stateChangeEvent = eventHandler;
+        for(var i = 0; i < this._radioList.length; i++)
+            this._radioList[i]._stateChangeEvent = eventHandler;
+    }
+    
+    /**
+     * NOT FOR PUBLIC USE. Handles the checking and unchecking of the group's radio buttons.
+     * @param  {number} index
+     * @param  {number} listLength
+     * @param  {RadioButtons[]} radioList
+     */
+    _checkColorChange(index, listLength, radioList)
+    {
+        this._radioList[index]._group.on('buttonChecked', function(data) {
+            self._currentlyChecked = data.detail.buttonNum;
+            for (var i = 0; i < listLength; i++)
+            {
+                radioList[i]._uncheckButton();
+            }
+
+            radioList[index]._checkButton();
+            if (radioList[index]._clickEvent != null)
+                radioList[index]._clickEvent({Button: data.detail.buttonNum, clickEvent: data.detail.Event})  
+        })
     }
 }
 
-
+/**Class representing a text box.*/
 class TextBox
 {
+    
+    /**
+     * Creates a text box.
+     */
     constructor()
     {
-        this.group = svgDraw.group();
-        this. polyline = svgDraw.polyline('50,75, 50,50 50,75 400,75 400,50, 50,50') 
-        this.polyline.fill('white').move(20, 20)
-        this.polyline.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' })
-        this.textContents = "";
-        this.text = svgDraw.text(this.textContents);
-        this.text.font({family: 'Trebuchet MS'});
-        this.text.move(28,17);
-        this.endBox = svgDraw.polyline('360,50 360,17 30,17');
-        this.endBox.stroke({ color: 'transparent', width: 4, linecap: 'round', linejoin: 'round', fill: 'transparent'})
-        this.endBox.fill('transparent');
-        this.group.add(this.polyline);
-        this.group.add(this.text);
-        this.group.add(this.endBox);
-        this.canType = false;
+        this._group = svgDraw.group();
+        this. _polyline = svgDraw.polyline('50,75, 50,50 50,75 400,75 400,50, 50,50') 
+        this._polyline.fill('white').move(20, 20)
+        this._polyline.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' })
+        
+        this._textContents = "";
+        this._text = svgDraw.text(this._textContents);
+        this._text.font({family: 'Trebuchet MS'});
+        this._text.move(28,17);
+        
+        this._endBox = svgDraw.polyline('360,50 360,17 30,17');
+        this._endBox.stroke({ color: 'transparent', width: 4, linecap: 'round', linejoin: 'round', fill: 'transparent'})
+        this._endBox.fill('transparent');
+        
+        this._group.add(this._polyline);
+        this._group.add(this._text);
+        this._group.add(this._endBox);
+        this._canType = false;
 
-        this.typeEvent = null;
-        this.stateChangeEvent = null;
+        this._typeEvent = null;
+        this._stateChangeEvent = null;
         self = this;
 
-        this.enableTyping(self, svgDraw);
-        this.readUserInput(self);
+        this._enableTyping(self, svgDraw);
+        this._readUserInput(self);
     }
 
+    /**
+     * Moves the textbox to a given coordinate.
+     * @param  {number} x - The x value to which the text box will move.
+     * @param  {number} y - The y value to which the text box will move.
+     */
     move(x,y)
     {
-        this.group.move(x,y)
+        this._group.move(x,y)
     }
 
+    /**
+     * Gets the text box's entered text.
+     * @return {string} The text entered into the text box. 
+     */
     getText()
     {
-        return this.textContents;
+        return this._textContents;
     }
 
+     /**
+      * Assigns an event handler to respond to the text box's keyboard typing events.
+      * @param  {function} eventHandler - The event handler.
+      */
     onType(eventHandler)
     {
-        this.typeEvent = eventHandler
+        this._typeEvent = eventHandler
     }
 
+     /**
+      * Assigns an event handler to respond to all the events for the text box.
+      * @param  {function} eventHandler - The event handler.
+      */
     onStateChange(eventHandler)
     {
-        this.stateChangeEvent = eventHandler
+        this._stateChangeEvent = eventHandler
     }
 
-
-    enableTyping(self, draw)
+    /**
+     * NOT FOR PUBLIC USE. Handles the text box's mouseover and mouseout events.
+     * @param  {TextBox} self - The text box.
+     * @param  {SVG} draw - The SVG element in which the text box is containted.
+     */
+    _enableTyping(self, draw)
     {
-        self.group.mouseover(function(event){
-            self.text.text(self.textContents + '|');
-            self.canType = true;
+        self._group.mouseover(function(event){
+            self._text.text(self._textContents + '|');
+            self._canType = true;
             
-            if(self.stateChangeEventt != null)
-                self.stateChangeEvent(event)
+            if(self._stateChangeEventt != null)
+                self._stateChangeEvent(event)
         })
 
-        self.group.mouseout(function(event){
-            self.text.text(self.textContents);
-            self.canType = false;
+        self._group.mouseout(function(event){
+            self._text.text(self._textContents);
+            self._canType = false;
 
-            if(self.stateChangeEvent != null)
-                self.stateChangeEvent(event)
+            if(self._stateChangeEvent != null)
+                self._stateChangeEvent(event)
         })
 
-        self.text.mouseout(function(){
-            self.text.text(self.textContents);
-            self.canType = false;
+        self._text.mouseout(function(){
+            self._text.text(self._textContents);
+            self._canType = false;
         })
 
-        self.polyline.mouseout(function(){
-            self.text.text(self.textContents);
-            self.canType = false;
+        self._polyline.mouseout(function(){
+            self._text.text(self._textContents);
+            self._canType = false;
         })
         draw.mouseout(function(event){
-            self.text.text(self.textContents);
-            self.canType = false;
+            self._text.text(self._textContents);
+            self._canType = false;
 
-            if(self.stateChangeEvent != null)
-                self.stateChangeEvent(event)
+            if(self._stateChangeEvent != null)
+                self._stateChangeEvent(event)
         })
     }
 
-    readUserInput(self)
+    
+    /**
+     * NOT FOR PUBLIC USE. Handles the textbox's keyboard key events.
+     * @param  {TextBox} self - The textbox.
+     */
+    _readUserInput(self)
     {
         window.addEventListener('keydown', function(event){
-            if(self.canType)
+            if(self._canType)
             {
                 if (event.key == "Backspace")
                 {
-                    self.textContents = self.textContents.slice(0, self.textContents.length-1)
+                    self._textContents = self._textContents.slice(0, self._textContents.length-1)
 
-                    if(self.typeEvent != null)
-                        self.typeEvent(event)
+                    if(self._typeEvent != null)
+                        self._typeEvent(event)
                     
-                    if(self.stateChangeEvent != null)
-                        self.stateChangeEvent(event)
+                    if(self._stateChangeEvent != null)
+                        self._stateChangeEvent(event)
                 }    
-                else if(self.checkEndOfTextBox())
+                else if(self._checkEndOfTextBox())
                 {
                    if (!(event.key.length > 1))
                    {
-                        self.textContents = self.textContents+ event.key;
+                        self._textContents = self._textContents+ event.key;
 
-                        if(self.typeEvent != null)
-                            self.typeEvent(event)
+                        if(self._typeEvent != null)
+                            self._typeEvent(event)
                 
-                        if(self.stateChangeEvent != null)
-                            self.stateChangeEvent(event)
+                        if(self._stateChangeEvent != null)
+                            self._stateChangeEvent(event)
                    }           
                 }
                 else
                 {
-                    if(self.stateChangeEvent != null)
-                        self.stateChangeEvent({boxStatus: "Full", typeEvent: event})
+                    if(self._stateChangeEvent != null)
+                        self._stateChangeEvent({boxStatus: "Full", typeEvent: event})
                 }
                 
-                self.text.text(self.textContents + '|');
+                self._text.text(self._textContents + '|');
             }
             else
-                self.text.text(self.textContents);
+                self._text.text(self._textContents);
         })
     }
-    checkEndOfTextBox()
+
+    
+    /**
+     * NOT FOR PUBLIC USE. Checks if the entered text reaches the end of the text box.
+     * @return {boolean} Whether or not the entered text has reached the end of the text box.
+     */
+    _checkEndOfTextBox()
     {
-        var textEdge = this.text.bbox();
-        var endTexBox = this.endBox.bbox();
+        var textEdge = this._text.bbox();
+        var endTexBox = this._endBox.bbox();
 
         return textEdge.width <= endTexBox.width;
     }
 }
 
+/**Class representing a scroll bar.*/
 class ScrollBar
 {
-    constructor(length)
+    
+    /**
+     * Creates a scroll bar of the specified height.
+     * @param  {number} height - The initial height of the scroll bar. Has a minimum value of 50.
+     */
+    constructor(height)
     {
-        if (length < 50)
-            this.barHeight = 50;
+        if (height < 50)
+            this._barHeight = 50;
         else
-            this.barHeight = length;
+            this._barHeight = height;
 
-        this.upButton = svgDraw.rect(25,25);
-        this.upButton.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' });
-        this.upButton.fill('white');
+        this._upButton = svgDraw.rect(25,25);
+        this._upButton.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' });
+        this._upButton.fill('white');
 
-        this.scrollArea = svgDraw.rect(25,this.barHeight);
-        this.scrollArea.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' });
-        this.scrollArea.fill('gray');
-        this.scrollArea.move(0,25)
+        this._scrollArea = svgDraw.rect(25,this._barHeight);
+        this._scrollArea.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' });
+        this._scrollArea.fill('gray');
+        this._scrollArea.move(0,25)
        
-        this.downButton = svgDraw.rect(25,25);
-        this.downButton.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' });
-        this.downButton.fill('white');
-        this.downButton.move(0,this.barHeight+25);
+        this._downButton = svgDraw.rect(25,25);
+        this._downButton.stroke({ color: 'black', width: 4, linecap: 'round', linejoin: 'round' });
+        this._downButton.fill('white');
+        this._downButton.move(0,this._barHeight+25);
 
-        this.scroller = svgDraw.rect(17, 30);
-        this.scroller.stroke({ color: 'pink', width: 4, linecap: 'round', linejoin: 'round' });
-        this.scroller.fill('orange');
-        this.scroller.move(4,28);
+        this._scroller = svgDraw.rect(17, 30);
+        this._scroller.stroke({ color: 'pink', width: 4, linecap: 'round', linejoin: 'round' });
+        this._scroller.fill('orange');
+        this._scroller.move(4,28);
 
-        this.scrollBorderUpper = svgDraw.line(0,30,25,30);
-        this.scrollBorderUpper.stroke({ color: 'transparent', width: 4, linecap: 'round'});
+        this._scrollBorderUpper = svgDraw.line(0,30,25,30);
+        this._scrollBorderUpper.stroke({ color: 'transparent', width: 4, linecap: 'round'});
 
-        this.scrollBorderLower = svgDraw.line(0,this.barHeight+20, 25,this.barHeight+20);
-        this.scrollBorderLower.stroke({ color: 'transparent', width: 4, linecap: 'round'});
+        this._scrollBorderLower = svgDraw.line(0,this._barHeight+20, 25,this._barHeight+20);
+        this._scrollBorderLower.stroke({ color: 'transparent', width: 4, linecap: 'round'});
 
-        this.upArrow = svgDraw.polyline('4,20 10,10 16,20');
-        this.upArrow.fill('none');
-        this.upArrow.stroke({ color: 'black', width: 2, linecap: 'round'})
-        this.upArrow.move(6.5,8)
-
-
-        this.downArrow = svgDraw.polyline('4,10 10,20  16,10');
-        this.downArrow.fill('none');
-        this.downArrow.stroke({ color: 'black', width: 2, linecap: 'round'})
-        this.downArrow.move(6,this.barHeight+32)
+        this._upArrow = svgDraw.polyline('4,20 10,10 16,20');
+        this._upArrow.fill('none');
+        this._upArrow.stroke({ color: 'black', width: 2, linecap: 'round'})
+        this._upArrow.move(6.5,8)
 
 
-        this.group = svgDraw.group();
-        this.group.add(this.scrollArea)
-        this.group.add(this.scroller)
-        this.group.add(this.scrollBorderUpper)
-        this.group.add(this.scrollBorderLower)
-
-        this.upGroup = svgDraw.group()
-        this.upGroup.add(this.upButton)
-        this.upGroup.add(this.upArrow)
+        this._downArrow = svgDraw.polyline('4,10 10,20  16,10');
+        this._downArrow.fill('none');
+        this._downArrow.stroke({ color: 'black', width: 2, linecap: 'round'})
+        this._downArrow.move(6,this._barHeight+32)
 
 
-        this.downGroup = svgDraw.group();
-        this.downGroup.add(this.downButton)
-        this.downGroup.add(this.downArrow)
+        this._group = svgDraw.group();
+        this._group.add(this._scrollArea)
+        this._group.add(this._scroller)
+        this._group.add(this._scrollBorderUpper)
+        this._group.add(this._scrollBorderLower)
 
-        this.isHeld = false;
+        this._upGroup = svgDraw.group()
+        this._upGroup.add(this._upButton)
+        this._upGroup.add(this._upArrow)
+
+
+        this._downGroup = svgDraw.group();
+        this._downGroup.add(this._downButton)
+        this._downGroup.add(this._downArrow)
+
+        this._isHeld = false;
         
-        this.dragEvent = null
-        this.stateChangeEvent = null
+        this._dragEvent = null
+        this._stateChangeEvent = null
 
-        this.enableDrag();
-        this.dragScroller(this.scroller, this);
-        this.clickButtons(this.scroller, this);
+        this._enableDrag();
+        this._dragScroller(this._scroller, this);
+        this._clickButtons(this._scroller, this);
     }
+
+    
+    /**
+     * Moves the scroll bar to a given coordinate.
+     * @param  {number} x - The x value to which the scroll bar will move.
+     * @param  {number} y - The y value to which the scroll bar will move.
+     */
     move(x,y)
     {
-        this.group.move(x,y)
-        this.upGroup.move(x,y-25)
-        this.downGroup.move(x,y+this.barHeight)
+        this._group.move(x,y)
+        this._upGroup.move(x,y-25)
+        this._downGroup.move(x,y+this._barHeight)
     }
 
+    
+    /**
+     * Changes the scroll bar to the specified height. Has a minimum value of 50.
+     * @param  {number} newHeight - The new height of the scroll bar.
+     */
     setHeight(newHeight)
     {
         if (newHeight >= 50)
-            this.barHeight = newHeight;
+            this._barHeight = newHeight;
         else
-            this.barHeight = 50;
-        this.scrollArea.height(this.barHeight);
+            this._barHeight = 50;
+        this._scrollArea.height(this._barHeight);
 
-        this.downGroup.y(this.scrollArea.y()+this.barHeight)
-        this.scrollBorderLower.y(this.scrollArea.y()+this.barHeight-5)
+        this._downGroup.y(this._scrollArea.y()+this._barHeight)
+        this._scrollBorderLower.y(this._scrollArea.y()+this._barHeight-5)
     }
+
+    
+    /**
+     * Gets the position of the scroll thumb on the SVG canvas.
+     * @return {Object} The {x,y} values of the scroll thumb.
+     */
     getThumbPosition()
     {
-        return {x: this.scroller.x(), y: this.scroller.y()}
+        return {x: this._scroller.x(), y: this._scroller.y()}
     }
 
+    
+    /**
+     * Assigns an event handler to respond to the scroll thumb being dragged.
+     * @param  {function} eventHandler - The event handler.
+     */
     onDrag(eventHandler)
     {
-        this.dragEvent = eventHandler
+        this._dragEvent = eventHandler
     }
 
+
+     /**
+      * Assigns an event handler to respond to all the events for the scroll bar.
+      * @param  {function} eventHandler - The event handler.
+      */
     onStateChange(eventHandler)
     {
-        this.stateChangeEvent = eventHandler
+        this._stateChangeEvent = eventHandler
     }
 
-    enableDrag()
+    
+    /**
+     * NOT FOR PUBLIC USE. Handles the scroll bar's mouse down and mouse up events.
+     */
+    _enableDrag()
     {
         var self=this;
-        this.scroller.mousedown(function(event){
-            self.isHeld = true;
-            if  (self.stateChangeEvent != null)
-                self.stateChangeEvent(event)
+        this._scroller.mousedown(function(event){
+            self._isHeld = true;
+            if  (self._stateChangeEvent != null)
+                self._stateChangeEvent(event)
         })
 
-        this.scroller.mouseup(function(event){
-            self.isHeld = false;
-            if (self.stateChangeEvent != null)
-                self.stateChangeEvent(event)
+        this._scroller.mouseup(function(event){
+            self._isHeld = false;
+            if (self._stateChangeEvent != null)
+                self._stateChangeEvent(event)
         })
 
         window.addEventListener('mouseup', function(event){
-            self.isHeld = false;
-            if (self.stateChangeEvent != null)
-                self.stateChangeEvent(event)
+            self._isHeld = false;
+            if (self._stateChangeEvent != null)
+                self._stateChangeEvent(event)
           })
     }
 
-    dragScroller(scroll, self)
+
+    /**
+     * NOT FOR PUBLIC USE. Handles the moving of the scroll thumb.
+     */
+    _dragScroller(scroll, self)
     {
         window.addEventListener('mousemove', function(event){
-            if (self.isHeld)
+            if (self._isHeld)
             {
                 var CTM = event.target.getScreenCTM();
                 var newY = (event.clientY - CTM.f)/CTM.d;
 
-                if (self.atUpperBorder())
+                if (self._atUpperBorder())
                 {
                     if(newY > scroll.y())
                         scroll.y(newY);
                 }
-                else if (self.atLowerBorder())
+                else if (self._atLowerBorder())
                 {
                     if(newY < scroll.y())
                         scroll.y(newY);
                 }
                 else
                 {
-                    if(self.dragEvent != null)
+                    if(self._dragEvent != null)
                     {
                         if(scroll.y() > newY)
-                            self.dragEvent({dragDirection: 'Up', dragEvent: event})
+                            self._dragEvent({dragDirection: 'Up', dragEvent: event})
                         else if(scroll.y() < newY)
-                            self.dragEvent({dragDirection: 'Down', dragEvent: event})
+                            self._dragEvent({dragDirection: 'Down', dragEvent: event})
                     }
-                    if (newY >= self.scrollArea.y() & newY < self.scrollArea.y()+self.barHeight)
+                    if (newY >= self._scrollArea.y() & newY < self._scrollArea.y()+self._barHeight)
                         scroll.y(newY);
                 }
-                if (self.stateChangeEvent != null)
-                    self.stateChangeEvent(event)     
+                if (self._stateChangeEvent != null)
+                    self._stateChangeEvent(event)     
             }     
         })
     }
-             
-    clickButtons(scroll, self)
+            
+    
+    /**
+     * NOT FOR PUBLIC USE. Handles the scroll thumb movements when the scroll bar's Up and Down buttons are clicked.
+     * @param  {Object} scroll - The scroll thumb.
+     * @param  {ScrollBar} self - The scroll bar.
+     */
+    _clickButtons(scroll, self)
     {
-        this.upGroup.mousedown(function(event){
-            self.upButton.fill('pink');
-            self.upArrow.stroke({color:'gray'})
+        this._upGroup.mousedown(function(event){
+            self._upButton.fill('pink');
+            self._upArrow.stroke({color:'gray'})
 
-            if (!self.atUpperBorder())
+            if (!self._atUpperBorder())
             {
-                if (self.dragEvent != null)
-                    self.dragEvent({dragDirection: 'Up', dragEvent: event})
+                if (self._dragEvent != null)
+                    self._dragEvent({dragDirection: 'Up', dragEvent: event})
                 scroll.y(scroll.y()-5);   
             }    
         })
 
-        this.downGroup.mousedown(function(event){
-            self.downButton.fill('pink');
-            self.downArrow.stroke({color:'gray'})
+        this._downGroup.mousedown(function(event){
+            self._downButton.fill('pink');
+            self._downArrow.stroke({color:'gray'})
 
-            if (!self.atLowerBorder())
+            if (!self._atLowerBorder())
             {
-                if (self.dragEvent != null)
-                    self.dragEvent({dragDirection: 'Down', dragEvent: event})
+                if (self._dragEvent != null)
+                    self._dragEvent({dragDirection: 'Down', dragEvent: event})
                 scroll.y(scroll.y()+5);   
             }    
         })
 
-        this.upButton.mouseup(function(event){
+        this._upButton.mouseup(function(event){
             this.fill('white');
-            self.upArrow.stroke({color:'black'})
+            self._upArrow.stroke({color:'black'})
         })
 
-        this.downButton.mouseup(function(event){
+        this._downButton.mouseup(function(event){
             this.fill('white');
-            self.downArrow.stroke({color:'black'})
+            self._downArrow.stroke({color:'black'})
         })
 
         window.addEventListener('mouseup', function(event){
-            self.upButton.fill('white')
-            self.downButton.fill('white')
-            self.upArrow.stroke({color:'black'})
-            self.downArrow.stroke({color:'black'})
+            self._upButton.fill('white')
+            self._downButton.fill('white')
+            self._upArrow.stroke({color:'black'})
+            self._downArrow.stroke({color:'black'})
           })
-          if (self.stateChangeEvent != null)
-            self.stateChangeEvent(event)
+          if (self._stateChangeEvent != null)
+            self._stateChangeEvent(event)
     }
 
-    atUpperBorder()
+    
+    /**
+     * NOT FOR PUBLIC USE. Determines if the scroll thumb is at the top of the scroll bar.
+     * @return {boolean} Whether or not the scrol thumb is at the top of the scroll bar.
+     */
+    _atUpperBorder()
     {
-        return this.scroller.y() <= this.scrollBorderUpper.y();
+        return this._scroller.y() <= this._scrollBorderUpper.y();
     }
 
-    atLowerBorder()
+    /**
+     * NOT FOR PUBLIC USE. Determines if the scroll thumb is at the bottom of the scroll bar.
+     * @return {boolean} Whether or not the scrol thumb is at the bottom of the scroll bar.
+     */
+    _atLowerBorder()
     {
-        return (this.scroller.y() + 2*(this.scroller.cy() -this.scroller.y()))>= this.scrollBorderLower.y();
+        return (this._scroller.y() + 2*(this._scroller.cy() -this._scroller.y()))>= this._scrollBorderLower.y();
     }
 }
 
+/**Class representing a progress bar.*/
 class ProgressBar
 {
+    /**
+     * Creates a progress bar.
+     * @param  {number} barWidth - The width of the progress bar.
+     * @param  {number} barPercentage - The percentage of the proress bar to be filled when initialized.
+     */
     constructor(barWidth, barPercentage)
     {
         if (barWidth < 30)
@@ -814,6 +1064,11 @@ class ProgressBar
         this._stateChangeEvent = null
     }
 
+    
+    /**
+     * Sets the fill percentage of the progress bar to a new value.
+     * @param  {number} newValue - The new percentage for the progress bar to be filled.
+     */
     setValue(newValue)
     {
         if (newValue < 0)
@@ -839,6 +1094,12 @@ class ProgressBar
         if (this._stateChangeEvent != null)
             this._stateChangeEvent({newSetPercentage: this._barPerc});
     }
+
+    
+    /**
+     * Adjusts the progress bar's width to make it longer or shorter.
+     * @param  {number} newWidth - The new width of the progress bar.
+     */
     setWidth(newWidth) 
     {
         if (newWidth < 30)
@@ -857,6 +1118,12 @@ class ProgressBar
         if (this._stateChangeEvent != null)
             this._stateChangeEvent({newWidth:this._barWidth});
     }
+
+    
+    /**
+     * Adds a specified percentage to the total percentage of the progress bar.
+     * @param  {number} inc - The amount by which the progress bar will be incremented.
+     */
     increment(inc)
     {
         if (this._barPerc + inc > 100)
@@ -875,13 +1142,22 @@ class ProgressBar
         if (this._stateChangeEvent != null)
             this._stateChangeEvent({newIncrementedPercentage: this._barPerc});
     }
-
-
+    
+    /**
+     * Gets the percentage of the progress bar that is filled.
+     * @return {number} The progress bar's fill percentage.
+     */
     getValue()
     {
         return this._barPerc;
     }
 
+    
+    /**
+     * Moves the progress bar to a given coordinate.
+     * @param  {number} x - The x value to which the progress bar will move.
+     * @param  {number} y - The y value to which the progress bar will move.
+     */
     move(x,y) 
     {
         this._bar.move(x,y);
@@ -890,20 +1166,36 @@ class ProgressBar
         this._movingParts.move(x+ this._barWidth-15,y)  
     }
 
+
+     /**
+      * Assigns an event handler to respond to the progress bar's fill percentage changing.
+      * @param  {function} eventHandler - The event handler.
+      */
     onIncrement(eventHandler)
     {
         this._incrementEvent = eventHandler;
     }
 
+     /**
+      * Assigns an event handler to respond to all state changes for the progress bar.
+      * @param  {function} eventHandler - The event handler.
+      */
     onStateChange(eventHandler)
     {
         this._stateChangeEvent = eventHandler;
     }
 }
 
+/**Class representing a toggle switch.*/
 class ToggleSwitch
 {
-    constructor(startState, enableColor='#60e356')
+    
+    /**
+     * Creates a toggle switch.
+     * @param  {boolean} startState - The state in which the switch will be initialized. Enabled = true, Disabled = false
+     * @param  {string} enableColor - The color the switch will have when it is enabled.
+     */
+    constructor(startState=false, enableColor='#60e356')
     {
         this.switchColor = enableColor
         this._switchArea = svgDraw.rect(60, 40); 
@@ -939,6 +1231,11 @@ class ToggleSwitch
         this._otherStateChanges(this);
     }
 
+    /**
+     * Moves the toggle switch to a given coordinate.
+     * @param {number} x - The x value to which the toggle switch will move.
+     * @param {number} y - The y value to which the toggle switch will move.
+     */
     move(x,y)
     {
         this._group.move(x,y);
@@ -946,27 +1243,57 @@ class ToggleSwitch
         this._offX = x+3;
     }
 
+    
+    /**
+     * Gets if the toggle switch is enabled or disabled. Enabled = true, Disabled = false
+     * @return {boolean} Whether or not the toggle switch is enabled.
+     */
     isEnabled()
     {
         return this._isOn;
     }
 
+    
+    /**
+     * Changes the color of the toggle switch when Enabled.
+     * @param  {string} newColor - The new color for the toggle switch when enabled.
+     */
+    setColor(newColor)
+    {
+        this.switchColor = newColor;
+    }
+
+    
+    /**
+     * Gets the color of the toggle switch when it is enabled.
+     * @return {string} The toggle switch's color when enabled.
+     */
     getColor()
     {
         return this.switchColor;
     }
 
+     /**
+      * Assigns an event handler to respond to the click events for the toggle switch.
+      * @param  {function} eventHandler - The event handler.
+      */
     onClick(eventHandler)
     {
         this._clickEvent = eventHandler;
     }
 
+     /**
+      * Assigns an event handler to respond to all the events for the toggle switch.
+      * @param  {function} eventHandler - The event handler.
+      */
     onStateChange(eventHandler)
     {
         this._stateChangeEvent = eventHandler;
     }
 
-
+    /**
+     * NOT FOR PUBLIC USE. Handles the click events for the toggle switch.
+     */
     _flipSwitch()
     {
         var self = this;
@@ -985,6 +1312,9 @@ class ToggleSwitch
                 
     }
 
+    /**
+     * NOT FOR PUBLIC USE. Turns the toggle switch off.
+     */
     _switchOff()
     {
         this._isOn = false;
@@ -992,6 +1322,9 @@ class ToggleSwitch
         this._switchArea.fill('gray');
     }
 
+    /**
+     * NOT FOR PUBLIC USE. Turns the toggle switch on.
+     */
     _switchOn()
     {
         this._isOn = true;
@@ -999,6 +1332,9 @@ class ToggleSwitch
         this._switchArea.fill(this.switchColor);
     }
 
+    /** NOT FOR PUBLIC USE. Handles the toggle switch's mouse events that are not click events.
+    * @param  {ToggleSwitch} self - The toggle switch.
+    */
     _otherStateChanges(self)
     {
         this._group.mouseover(function(event){
